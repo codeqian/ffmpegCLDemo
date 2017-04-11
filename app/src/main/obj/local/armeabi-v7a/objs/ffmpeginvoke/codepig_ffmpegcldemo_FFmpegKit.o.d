@@ -33,7 +33,7 @@ F:/Git/ffmpegCLDemo/app/src/main/obj/local/armeabi-v7a/objs/ffmpeginvoke/codepig
   F:/demo/ffmpeg-3.0\libavutil/fifo.h \
   F:/demo/ffmpeg-3.0\libavutil/threadmessage.h \
   F:/demo/ffmpeg-3.0\libswresample/swresample.h \
-  F:/demo/ffmpeg-3.0\libswresample/version.h
+  F:/demo/ffmpeg-3.0\libswresample/version.h logjam.h
 
 codepig_ffmpegcldemo_FFmpegKit.h:
 
@@ -108,3 +108,5 @@ F:/demo/ffmpeg-3.0\libavutil/threadmessage.h:
 F:/demo/ffmpeg-3.0\libswresample/swresample.h:
 
 F:/demo/ffmpeg-3.0\libswresample/version.h:
+
+logjam.h:

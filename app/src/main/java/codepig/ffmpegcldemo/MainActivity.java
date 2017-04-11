@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private Uri videoUri=null;
     private String videoUrl="";
     private String imageUrl="";
-    private String musicUrl="";
+    private String musicUrl="/storage/sdcard0/boosjdance/media/14113.mp4";
     private String outputUrl="";
     private String ffmpegUrl="";
     private int file_type=0;
@@ -85,8 +85,15 @@ public class MainActivity extends AppCompatActivity {
         mHandler = new Handler() {  //初始化handler
             @Override
             public void handleMessage(Message msg) { //通过handleMessage()来处理传来的消息
-                if (msg.what == 0)
-                    imgPreview.setImageBitmap(imageBitmap);
+                switch (msg.what){
+                    case 0:
+                        imgPreview.setImageBitmap(imageBitmap);
+                        break;
+                    case 1:
+                        break;
+                    default:
+                        break;
+                }
             }
         };
     }
@@ -115,6 +122,7 @@ public class MainActivity extends AppCompatActivity {
                             // 创建保存录制视频的视频文件
 //                            recordFilename = FileUtil.getPath() + "/rec_" + System.currentTimeMillis() + ".mp4";
                             videoFile = new File(FileUtil.getPath() + "/"+recordFilename+".mp4");
+                            videoUrl=FileUtil.getPath() + "/"+recordFilename+".mp4";
                             // 创建MediaPlayer对象
                             mRecorder = new MediaRecorder();
                             mRecorder.reset();
@@ -155,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
                         // 释放资源
                         mRecorder.release();
                         mRecorder = null;
-                        if(audioUri!=null){
+                        if(!musicUrl.equals("")){
                             //开始合并
                             compoundVideo();
                         }
@@ -422,20 +430,50 @@ public class MainActivity extends AppCompatActivity {
      * ffmpeg操作
      */
     private void compoundVideo(){
-        String[] commands = new String[9];
-        commands[0] = "ffmpeg";
-        commands[1] = "-i";
-        commands[2] = videoUrl;
-        commands[3] = "-i";
-        commands[4] = musicUrl;
-        commands[5] = "-strict";
-        commands[6] = "-2";
-        commands[7] = "-y";
-        commands[8] = outputUrl;
-        Toast.makeText(MainActivity.this, "命令行执行开始", Toast.LENGTH_SHORT).show();
-        int result = FFmpegKit.run(commands);
-        if(result == 0){
-            Toast.makeText(MainActivity.this, "命令行执行完成", Toast.LENGTH_SHORT).show();
-        }
+        outputUrl=FileUtil.getPath() + "/"+outputFilename+".mp4";
+        Runnable compoundRun=new Runnable() {
+            @Override
+            public void run() {
+                String[] commands = new String[9];
+                commands[0] = "ffmpeg";
+                commands[1] = "-i";
+                commands[2] = videoUrl;
+                commands[3] = "-i";
+                commands[4] = musicUrl;
+                commands[5] = "-strict";
+                commands[6] = "-2";
+                commands[7] = "-y";
+                commands[8] = outputUrl;
+                Log.d("LOGCAT","start com:"+commands.toString());
+
+                FFmpegKit.execute(commands, new FFmpegKit.KitInterface() {
+                    @Override
+                    public void onStart() {
+                        Log.d("LOGCAT","FFmpeg 命令行开始执行了...");
+                    }
+
+                    @Override
+                    public void onProgress(int progress) {
+                        Log.d("LOGCAT","done com"+"FFmpeg 命令行执行进度..."+progress);
+                    }
+
+                    @Override
+                    public void onEnd(int result) {
+                        Log.d("LOGCAT","FFmpeg 命令行执行完成...");
+                    }
+                });
+
+//                int result = FFmpegKit.run(commands);
+//                Log.d("LOGCAT","start run");
+//                if(result == 0){
+//                    Message msg = new Message();
+//                    msg.what = 1;
+//                    mHandler.sendMessage(msg);
+//                    Log.d("LOGCAT","done com");
+//                    Toast.makeText(MainActivity.this, "命令行执行完成", Toast.LENGTH_SHORT).show();
+//                }
+            }
+        };
+        ThreadPoolUtils.execute(compoundRun);
     }
 }
