@@ -7,8 +7,7 @@
     tools:context="codepig.ffmpegcldemo.MainActivity">
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:layout_height="240dp"
         android:id="@+id/playerPlan"
         tools:layout_editor_absoluteY="0dp"
         tools:layout_editor_absoluteX="8dp">
@@ -58,8 +57,8 @@
             android:layout_width="70dp"
             android:layout_height="40dp" />
         <Button
-            android:text="video"
-            android:id="@+id/videoBtn"
+            android:text="make"
+            android:id="@+id/makeBtn"
             android:textSize="10sp"
             android:layout_width="70dp"
             android:layout_height="40dp" />
