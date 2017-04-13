@@ -194,7 +194,7 @@ public class MainActivity extends AppCompatActivity {
                     if(!imageUrl.equals("")){
                         Log.d("LOGCAT","frame img:"+imageUrl);
                         //开始合并
-                        addPic2Video();
+                        makeVideo();
                     }
 //                    if(!musicUrl.equals("")){
 //                        //开始合并
@@ -449,25 +449,12 @@ public class MainActivity extends AppCompatActivity {
     /**
      * 添加图片水印
      */
-    /**
-     * ffmpeg操作
-     */
     private void addPic2Video(){
         outputUrl=FileUtil.getPath() + "/"+outputFilename+".mp4";
         Log.d("LOGCAT","start outputUrl:"+outputUrl);
         Runnable compoundRun=new Runnable() {
             @Override
             public void run() {
-//                ffmpeg
-//                        -i
-//                input.mp4
-//                        -i
-//                logo.png
-//                        -filter_complex
-//                "overlay=(main_w-overlay_w)/2:(main_h-overlay_h)/2"
-//                -codec:a
-//                copy
-//                output.mp4
                 String[] commands = new String[10];
                 commands[0] = "ffmpeg";
                 commands[1] = "-i";
@@ -479,7 +466,6 @@ public class MainActivity extends AppCompatActivity {
                 commands[7] = "-codec:a";
                 commands[8] = "copy";
                 commands[9] = outputUrl;
-                Log.d("LOGCAT","start cmd:"+commands.toString());
 
                 FFmpegKit.execute(commands, new FFmpegKit.KitInterface() {
                     @Override
@@ -511,17 +497,13 @@ public class MainActivity extends AppCompatActivity {
         Runnable compoundRun=new Runnable() {
             @Override
             public void run() {
-                String[] commands = new String[9];
+                String[] commands = new String[6];
                 commands[0] = "ffmpeg";
                 commands[1] = "-i";
                 commands[2] = videoUrl;
                 commands[3] = "-i";
                 commands[4] = musicUrl;
-                commands[5] = "-strict";
-                commands[6] = "-2";
-                commands[7] = "-y";
-                commands[8] = outputUrl;
-                Log.d("LOGCAT","start cmd:"+commands.toString());
+                commands[5] = outputUrl;
 
                 FFmpegKit.execute(commands, new FFmpegKit.KitInterface() {
                     @Override
@@ -541,6 +523,54 @@ public class MainActivity extends AppCompatActivity {
 //                        Message msg = new Message();
 //                        msg.what = 1;
 //                        mHandler.sendMessage(msg);
+                    }
+                });
+            }
+        };
+        ThreadPoolUtils.execute(compoundRun);
+    }
+
+    /**
+     * 添加图片水印及音乐
+     */
+    private void makeVideo(){
+        outputUrl=FileUtil.getPath() + "/"+outputFilename+".mp4";
+        Log.d("LOGCAT","start outputUrl:"+outputUrl);
+        Runnable compoundRun=new Runnable() {
+            @Override
+            public void run() {
+                String[] commands = new String[11];
+                commands[0] = "ffmpeg";
+                commands[1] = "-i";
+                commands[2] = videoUrl;
+                commands[3] = "-i";
+                commands[4] = imageUrl;
+                commands[5] = "-filter_complex";
+                commands[6] = "overlay=(main_w-overlay_w)/2:(main_h-overlay_h)/2";
+                commands[7] = "-i";
+                commands[8] = musicUrl;
+                commands[9] = "-y";
+                commands[10] = outputUrl;
+
+//                commands[10] = "-strict";//标准的严格性
+//                commands[11] = "-2";
+//                commands[12] = "-y";//直接覆盖输出文件
+
+                FFmpegKit.execute(commands, new FFmpegKit.KitInterface() {
+                    @Override
+                    public void onStart() {
+                        Log.d("FFmpegLog LOGCAT","FFmpeg 命令行开始执行了...");
+                    }
+
+                    @Override
+                    public void onProgress(int progress) {
+                        Log.d("FFmpegLog LOGCAT","done com"+"FFmpeg 命令行执行进度..."+progress);
+                    }
+
+                    @Override
+                    public void onEnd(int result) {
+                        Log.d("FFmpegLog LOGCAT","FFmpeg 命令行执行完成...");
+//                        getWindow().setFlags(0, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                     }
                 });
             }
