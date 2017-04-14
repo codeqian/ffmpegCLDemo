@@ -1,27 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     tools:context="codepig.ffmpegcldemo.MainActivity">
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="240dp"
-        android:id="@+id/playerPlan"
-        tools:layout_editor_absoluteY="0dp"
-        tools:layout_editor_absoluteX="8dp">
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:id="@+id/playerPlan">
         <!--渲染层-->
         <SurfaceView
-            android:layout_width="match_parent"
+            android:layout_centerInParent="true"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:id="@+id/surfaceView"/>
         <!--缓冲图标-->
-        <ProgressBar
+        <LinearLayout
             android:id="@+id/bufferIcon"
+            android:layout_centerInParent="true"
+            android:gravity="center"
+            android:orientation="vertical"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true" />
+            android:layout_height="wrap_content">
+            <ProgressBar
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+            <TextView
+                android:id="@+id/infoText"
+                android:textColor="@android:color/white"
+                android:text="合成中，请等待。几分钟就压完了（吧）。"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
         <ImageView
             android:id="@+id/imgPreview"
             android:scaleType="fitXY"
@@ -30,10 +41,12 @@
     </RelativeLayout>
     <LinearLayout
         android:orientation="horizontal"
+        android:layout_alignParentBottom="true"
+        android:gravity="center"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <Button
-            android:text="recode"
+            android:text="开始录制"
             android:id="@+id/cameraBtn"
             android:textSize="10sp"
             android:layout_width="70dp"
@@ -43,24 +56,25 @@
             android:layout_width="70dp"
             android:layout_height="40dp"
             android:id="@+id/switchCameraBtn"
-            android:text="Switch"/>
+            android:text="切换镜头"/>
         <Button
-            android:text="image"
+            android:text="选择图片"
             android:id="@+id/imgBtn"
             android:textSize="10sp"
             android:layout_width="70dp"
             android:layout_height="40dp" />
         <Button
-            android:text="music"
+            android:text="选择音乐"
             android:id="@+id/musicBtn"
             android:textSize="10sp"
             android:layout_width="70dp"
             android:layout_height="40dp" />
         <Button
-            android:text="make"
+            android:visibility="gone"
+            android:text="合成视频"
             android:id="@+id/makeBtn"
             android:textSize="10sp"
             android:layout_width="70dp"
             android:layout_height="40dp" />
     </LinearLayout>
-</LinearLayout>
+</RelativeLayout>

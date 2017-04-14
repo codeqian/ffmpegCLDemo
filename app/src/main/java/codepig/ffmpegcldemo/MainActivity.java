@@ -1,8 +1,9 @@
 package codepig.ffmpegcldemo;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.hardware.Camera;
@@ -19,19 +20,19 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
+    private Context context;
     private Button cameraBtn,imgBtn,musicBtn,makeBtn,switchCameraBtn;
     private ImageView imgPreview;
-    private ProgressBar bufferIcon;
+    private LinearLayout bufferIcon;
     private SurfaceView surfaceView;
     private MediaPlayer mPlayer;
     private MediaPlayer aPlayer;
@@ -41,30 +42,35 @@ public class MainActivity extends AppCompatActivity {
     private Uri imageUri=null;
     private Uri audioUri=null;
     private Uri videoUri=null;
-    private String videoUrl="";
-    private String imageUrl="/storage/sdcard0/download/frame.png";
-    private String musicUrl="/storage/sdcard0/download/test.mp3";
-    private String outputUrl="";
+    private String videoUrl="";//源视频文件(本例中是产生的录像文件)
+    private String imageUrl="";//水印图文件
+    private String musicUrl="";//音乐文件
+    private String outputUrl="";//输出视频文件
     private int file_type=0;
     private boolean isRecording = false;
     private String recordFilename="testVideo";
     private String outputFilename="outputVideo";
-    // 系统的视频文件
+    private Camera camera;
+    // 录制的视频文件
     private File videoFile ;
     private MediaRecorder mRecorder;
+    private boolean isPreview = false;
+    private boolean hasCamera=false;
+    private int camIdx=Camera.CameraInfo.CAMERA_FACING_FRONT;
 
     private final int IMAGE_FILE=1;
     private final int MUSIC_FILE=2;
     private final int VIDEO_FILE=3;
+    private final int screenW=1280;
+    private final int screenH=720;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        context=this;
         setContentView(R.layout.activity_main);
         findView();
         initSurfaceView();
-
-//        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     }
 
     private void findView(){
@@ -74,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
         musicBtn=(Button) findViewById(R.id.musicBtn);
         makeBtn=(Button) findViewById(R.id.makeBtn);
         imgPreview=(ImageView) findViewById(R.id.imgPreview);
-        bufferIcon=(ProgressBar) findViewById(R.id.bufferIcon);
+        bufferIcon=(LinearLayout) findViewById(R.id.bufferIcon);
 
         bufferIcon.setVisibility(View.GONE);
         imgBtn.setOnClickListener(clickBtn);
@@ -93,12 +99,78 @@ public class MainActivity extends AppCompatActivity {
                         imgPreview.setImageBitmap(imageBitmap);
                         break;
                     case 1:
+                        bufferIcon.setVisibility(View.VISIBLE);
+                        break;
+                    case 2:
+                        bufferIcon.setVisibility(View.GONE);
+                        makeBtn.setVisibility(View.GONE);
                         break;
                     default:
                         break;
                 }
             }
         };
+
+        outputUrl=FileUtil.getPath() + "/"+outputFilename+".mp4";
+        hasCamera=checkCameraHardware(context);
+    }
+
+    /**
+     * 初始化surfaceView
+     */
+    private void initSurfaceView(){
+        surfaceView = (SurfaceView) this.findViewById(R.id.surfaceView);
+        sfHolder=surfaceView.getHolder();
+        // 设置分辨率
+        sfHolder.setFixedSize(screenW, screenH);
+        sfHolder.addCallback(new SurfaceHolder.Callback() {
+            @Override
+            public void surfaceDestroyed(SurfaceHolder holder) {
+                Log.d("LOGCAT", "surfaceDestroyed");
+            }
+
+            //必须监听surfaceView的创建，创建完毕后才可以处理播放
+            @Override
+            public void surfaceCreated(SurfaceHolder holder) {
+                Log.d("LOGCAT", "surfaceCreated");
+                if(hasCamera) {
+                    openCamera();//接收到Surface的回调后启用摄像头。
+                }else{
+                    Toast.makeText(context, "没有摄像头，退散吧！", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+                Log.d("LOGCAT", "surfaceChanged");
+            }
+        });
+    }
+
+    /**
+     * 检测摄像头
+     * @param context
+     * @return
+     */
+    private boolean checkCameraHardware(Context context) {
+        if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * 初始化摄像头
+     */
+    private void openCamera() {
+        try {
+            camera = Camera.open(camIdx);
+            camera.setPreviewDisplay(sfHolder);//通过SurfaceView显示取景画面
+            camera.startPreview(); //开始预览
+        } catch (IOException e) {
+            Log.d("LOGCAT", "IOException:"+e.toString());
+        }
     }
 
     /**
@@ -110,14 +182,14 @@ public class MainActivity extends AppCompatActivity {
             switch (v.getId()) {
                 //播放器区域按钮
                 case R.id.switchCameraBtn:
-//                    camera.stopPreview();
-//                    camera.release();
-//                    if(camIdx==Camera.CameraInfo.CAMERA_FACING_FRONT){
-//                        camIdx=Camera.CameraInfo.CAMERA_FACING_BACK;
-//                    }else{
-//                        camIdx=Camera.CameraInfo.CAMERA_FACING_FRONT;
-//                    }
-//                    camera = Camera.open(camIdx);//打开当前选中的摄像头
+                    camera.stopPreview();
+                    camera.release();
+                    if(camIdx==Camera.CameraInfo.CAMERA_FACING_FRONT){
+                        camIdx=Camera.CameraInfo.CAMERA_FACING_BACK;
+                    }else{
+                        camIdx=Camera.CameraInfo.CAMERA_FACING_FRONT;
+                    }
+                    openCamera();
                     break;
                 case R.id.cameraBtn:
                     //录制
@@ -129,6 +201,9 @@ public class MainActivity extends AppCompatActivity {
                     if(isRecording)
                     {
                         try {
+                            camera.release();
+                            camera=null;
+                            switchCameraBtn.setVisibility(View.GONE);
                             // 设置该组件让屏幕不会自动关闭
                             sfHolder.setKeepScreenOn(true);
                             cameraBtn.setText("正在录制");
@@ -145,7 +220,7 @@ public class MainActivity extends AppCompatActivity {
                             // 设置从摄像头采集图像
                             mRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
                             //录制角度
-                            mRecorder.setOrientationHint(90);
+//                            mRecorder.setOrientationHint(90);
                             // 设置视频文件的输出格式
                             // 必须在设置声音编码格式、图像编码格式之前设置
                             mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
@@ -153,19 +228,20 @@ public class MainActivity extends AppCompatActivity {
 //                            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
                             // 设置图像编码的格式
                             mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-                            mRecorder.setVideoEncodingBitRate(5*1280*720);
-                            mRecorder.setVideoSize(1280, 720);
+                            mRecorder.setVideoEncodingBitRate(5*screenW*screenH);
+                            mRecorder.setVideoSize(screenW, screenH);
                             // 每秒20帧
-                            mRecorder.setVideoFrameRate(20);
+                            mRecorder.setVideoFrameRate(24);
                             mRecorder.setOutputFile(videoFile.getAbsolutePath());
                             // 指定使用SurfaceView来预览视频
-                            mRecorder.setPreviewDisplay(surfaceView.getHolder().getSurface());
+                            mRecorder.setPreviewDisplay(sfHolder.getSurface());
                             mRecorder.prepare();
                             // 开始录制
                             mRecorder.start();
                         }catch (IOException e){
                         }
                     }else{
+                        switchCameraBtn.setVisibility(View.VISIBLE);
                         stopPlayer();
                         // 设置该组件让屏幕不会自动关闭
                         surfaceView.getHolder().setKeepScreenOn(false);
@@ -176,6 +252,7 @@ public class MainActivity extends AppCompatActivity {
                         // 释放资源
                         mRecorder.release();
                         mRecorder = null;
+                        makeBtn.setVisibility(View.VISIBLE);
                     }
                     break;
                 case R.id.imgBtn:
@@ -186,54 +263,15 @@ public class MainActivity extends AppCompatActivity {
                     file_type=MUSIC_FILE;
                     chooseFile();
                     break;
-//                case R.id.videoBtn:
-//                    file_type=VIDEO_FILE;
-//                    chooseFile();
-//                    break;
                 case R.id.makeBtn:
-                    if(!imageUrl.equals("")){
-                        Log.d("LOGCAT","frame img:"+imageUrl);
-                        //开始合并
-                        makeVideo();
-                    }
-//                    if(!musicUrl.equals("")){
-//                        //开始合并
-//                        addMusic2Video();
-//                    }
+                    //开始合并
+                    makeVideo();
                     break;
                 default:
                     break;
             }
         }
     };
-
-    /**
-     * 初始化surfaceView
-     */
-    private void initSurfaceView(){
-        // 获取程序界面中的SurfaceView
-        surfaceView = (SurfaceView) this.findViewById(R.id.surfaceView);
-        sfHolder=surfaceView.getHolder();
-        // 设置分辨率
-        sfHolder.setFixedSize(1280, 720);
-        sfHolder.addCallback(new SurfaceHolder.Callback() {
-            @Override
-            public void surfaceDestroyed(SurfaceHolder holder) {
-                Log.d("LOGCAT", "surfaceDestroyed");
-            }
-
-            //必须监听surfaceView的创建，创建完毕后才可以处理播放
-            @Override
-            public void surfaceCreated(SurfaceHolder holder) {
-                Log.d("LOGCAT", "surfaceCreated");
-            }
-
-            @Override
-            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-                Log.d("LOGCAT", "surfaceChanged");
-            }
-        });
-    }
 
     /**
      * 打开文件
@@ -370,7 +408,6 @@ public class MainActivity extends AppCompatActivity {
                 }
                 mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                 //设置需要播放的视频
-//                    mPlayer.setDataSource("http://devimages.apple.com/iphone/samples/bipbop/gear1/prog_index.m3u8");//test
                 mPlayer.setDataSource(_url);
                 mPlayer.prepareAsync();
                 mPlayer.setOnBufferingUpdateListener(bufferingListener);
@@ -447,109 +484,36 @@ public class MainActivity extends AppCompatActivity {
     };
 
     /**
-     * 添加图片水印
-     */
-    private void addPic2Video(){
-        outputUrl=FileUtil.getPath() + "/"+outputFilename+".mp4";
-        Log.d("LOGCAT","start outputUrl:"+outputUrl);
-        Runnable compoundRun=new Runnable() {
-            @Override
-            public void run() {
-                String[] commands = new String[10];
-                commands[0] = "ffmpeg";
-                commands[1] = "-i";
-                commands[2] = videoUrl;
-                commands[3] = "-i";
-                commands[4] = imageUrl;
-                commands[5] = "-filter_complex";
-                commands[6] = "overlay=(main_w-overlay_w)/2:(main_h-overlay_h)/2";
-                commands[7] = "-codec:a";
-                commands[8] = "copy";
-                commands[9] = outputUrl;
-
-                FFmpegKit.execute(commands, new FFmpegKit.KitInterface() {
-                    @Override
-                    public void onStart() {
-                        Log.d("FFmpegLog LOGCAT","FFmpeg 命令行开始执行了...");
-                    }
-
-                    @Override
-                    public void onProgress(int progress) {
-                        Log.d("FFmpegLog LOGCAT","done com"+"FFmpeg 命令行执行进度..."+progress);
-                    }
-
-                    @Override
-                    public void onEnd(int result) {
-                        Log.d("FFmpegLog LOGCAT","FFmpeg 命令行执行完成...");
-//                        getWindow().setFlags(0, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                    }
-                });
-            }
-        };
-        ThreadPoolUtils.execute(compoundRun);
-    }
-
-    /**
-     * 合成音视频
-     */
-    private void addMusic2Video(){
-        outputUrl=FileUtil.getPath() + "/"+outputFilename+".mp4";
-        Runnable compoundRun=new Runnable() {
-            @Override
-            public void run() {
-                String[] commands = new String[6];
-                commands[0] = "ffmpeg";
-                commands[1] = "-i";
-                commands[2] = videoUrl;
-                commands[3] = "-i";
-                commands[4] = musicUrl;
-                commands[5] = outputUrl;
-
-                FFmpegKit.execute(commands, new FFmpegKit.KitInterface() {
-                    @Override
-                    public void onStart() {
-                        Log.d("FFmpegLog LOGCAT","FFmpeg 命令行开始执行了...");
-                    }
-
-                    @Override
-                    public void onProgress(int progress) {
-                        Log.d("FFmpegLog LOGCAT","done com"+"FFmpeg 命令行执行进度..."+progress);
-                    }
-
-                    @Override
-                    public void onEnd(int result) {
-                        Log.d("FFmpegLog LOGCAT","FFmpeg 命令行执行完成...");
-//                        getWindow().setFlags(0, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-//                        Message msg = new Message();
-//                        msg.what = 1;
-//                        mHandler.sendMessage(msg);
-                    }
-                });
-            }
-        };
-        ThreadPoolUtils.execute(compoundRun);
-    }
-
-    /**
      * 添加图片水印及音乐
      */
     private void makeVideo(){
-        outputUrl=FileUtil.getPath() + "/"+outputFilename+".mp4";
-        Log.d("LOGCAT","start outputUrl:"+outputUrl);
+        if(imageUri==null){
+            Toast.makeText(this, "少年，不先选张图片么？", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(audioUri==null){
+            Toast.makeText(this, "少年，不先选首音乐么？", Toast.LENGTH_SHORT).show();
+            return;
+        }
         Runnable compoundRun=new Runnable() {
             @Override
             public void run() {
                 String[] commands = new String[11];
                 commands[0] = "ffmpeg";
+                //输入
                 commands[1] = "-i";
                 commands[2] = videoUrl;
+                //水印
                 commands[3] = "-i";
                 commands[4] = imageUrl;
                 commands[5] = "-filter_complex";
                 commands[6] = "overlay=(main_w-overlay_w)/2:(main_h-overlay_h)/2";
+                //音乐
                 commands[7] = "-i";
                 commands[8] = musicUrl;
+                //覆盖输出
                 commands[9] = "-y";
+                //输出文件
                 commands[10] = outputUrl;
 
 //                commands[10] = "-strict";//标准的严格性
@@ -560,6 +524,9 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onStart() {
                         Log.d("FFmpegLog LOGCAT","FFmpeg 命令行开始执行了...");
+                        Message msg = new Message();
+                        msg.what = 1;
+                        mHandler.sendMessage(msg);
                     }
 
                     @Override
@@ -570,11 +537,21 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onEnd(int result) {
                         Log.d("FFmpegLog LOGCAT","FFmpeg 命令行执行完成...");
-//                        getWindow().setFlags(0, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                        Message msg = new Message();
+                        msg.what = 2;
+                        mHandler.sendMessage(msg);
                     }
                 });
             }
         };
         ThreadPoolUtils.execute(compoundRun);
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.d("LOGCAT", "player onDestroy");
+        camera.release();
+        camera=null;
+        super.onDestroy();
     }
 }
