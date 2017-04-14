@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.hardware.Camera;
+import android.hardware.Camera.Parameters;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
@@ -54,7 +55,6 @@ public class MainActivity extends AppCompatActivity {
     // 录制的视频文件
     private File videoFile ;
     private MediaRecorder mRecorder;
-    private boolean isPreview = false;
     private boolean hasCamera=false;
     private int camIdx=Camera.CameraInfo.CAMERA_FACING_FRONT;
 
@@ -113,6 +113,11 @@ public class MainActivity extends AppCompatActivity {
 
         outputUrl=FileUtil.getPath() + "/"+outputFilename+".mp4";
         hasCamera=checkCameraHardware(context);
+
+        //隐藏系统导航栏(android4.1及以上)
+        View decorView = getWindow().getDecorView();
+        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN;
+        decorView.setSystemUiVisibility(uiOptions);
     }
 
     /**
@@ -127,6 +132,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void surfaceDestroyed(SurfaceHolder holder) {
                 Log.d("LOGCAT", "surfaceDestroyed");
+                surfaceView=null;
+                sfHolder=null;
+                if(mRecorder!=null) {
+                    mRecorder.stop();
+                    mRecorder.release();
+                    mRecorder = null;
+                }
             }
 
             //必须监听surfaceView的创建，创建完毕后才可以处理播放
@@ -164,8 +176,16 @@ public class MainActivity extends AppCompatActivity {
      * 初始化摄像头
      */
     private void openCamera() {
+        if(camera!=null){
+            camera.stopPreview();
+            camera.release();
+            camera=null;
+        }
         try {
             camera = Camera.open(camIdx);
+            Parameters cP=camera.getParameters();
+            cP.setPreviewSize(screenW,screenH);
+            camera.setParameters(cP);
             camera.setPreviewDisplay(sfHolder);//通过SurfaceView显示取景画面
             camera.startPreview(); //开始预览
         } catch (IOException e) {
@@ -182,8 +202,6 @@ public class MainActivity extends AppCompatActivity {
             switch (v.getId()) {
                 //播放器区域按钮
                 case R.id.switchCameraBtn:
-                    camera.stopPreview();
-                    camera.release();
                     if(camIdx==Camera.CameraInfo.CAMERA_FACING_FRONT){
                         camIdx=Camera.CameraInfo.CAMERA_FACING_BACK;
                     }else{
@@ -200,59 +218,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                     if(isRecording)
                     {
-                        try {
-                            camera.release();
-                            camera=null;
-                            switchCameraBtn.setVisibility(View.GONE);
-                            // 设置该组件让屏幕不会自动关闭
-                            sfHolder.setKeepScreenOn(true);
-                            cameraBtn.setText("正在录制");
-                            Log.i("LOGCAT", "Start recording...");
-                            // 创建保存录制视频的视频文件
-//                            recordFilename = FileUtil.getPath() + "/rec_" + System.currentTimeMillis() + ".mp4";
-                            videoFile = new File(FileUtil.getPath() + "/"+recordFilename+".mp4");
-                            videoUrl=FileUtil.getPath() + "/"+recordFilename+".mp4";
-                            // 创建MediaPlayer对象
-                            mRecorder = new MediaRecorder();
-                            mRecorder.reset();
-                            // 设置从麦克风采集声音(或来自录像机的声音AudioSource.CAMCORDER)
-//                            mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-                            // 设置从摄像头采集图像
-                            mRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-                            //录制角度
-//                            mRecorder.setOrientationHint(90);
-                            // 设置视频文件的输出格式
-                            // 必须在设置声音编码格式、图像编码格式之前设置
-                            mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-                            // 设置声音编码的格式
-//                            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-                            // 设置图像编码的格式
-                            mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-                            mRecorder.setVideoEncodingBitRate(5*screenW*screenH);
-                            mRecorder.setVideoSize(screenW, screenH);
-                            // 每秒20帧
-                            mRecorder.setVideoFrameRate(24);
-                            mRecorder.setOutputFile(videoFile.getAbsolutePath());
-                            // 指定使用SurfaceView来预览视频
-                            mRecorder.setPreviewDisplay(sfHolder.getSurface());
-                            mRecorder.prepare();
-                            // 开始录制
-                            mRecorder.start();
-                        }catch (IOException e){
-                        }
+                        startRecode();
                     }else{
-                        switchCameraBtn.setVisibility(View.VISIBLE);
-                        stopPlayer();
-                        // 设置该组件让屏幕不会自动关闭
-                        surfaceView.getHolder().setKeepScreenOn(false);
-                        Log.i("LOGCAT", "录制完毕， 存储为 " + videoFile.getPath());
-                        cameraBtn.setText("录制完毕");
-                        // 停止录制
-                        mRecorder.stop();
-                        // 释放资源
-                        mRecorder.release();
-                        mRecorder = null;
-                        makeBtn.setVisibility(View.VISIBLE);
+                        stopRecode();
                     }
                     break;
                 case R.id.imgBtn:
@@ -272,6 +240,68 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
+
+    /**
+     * 开始录制
+     */
+    private void startRecode(){
+        try {
+            Log.i("LOGCAT", "Start recording...");
+            cameraBtn.setText("正在录制");
+            switchCameraBtn.setVisibility(View.GONE);
+            // 创建保存录制视频的视频文件
+            videoFile = new File(FileUtil.getPath() + "/"+recordFilename+".mp4");
+            videoUrl=FileUtil.getPath() + "/"+recordFilename+".mp4";
+            camera.unlock();
+            // 设置该组件让屏幕不会自动关闭
+            sfHolder.setKeepScreenOn(true);
+            mRecorder = new MediaRecorder();
+            mRecorder.reset();
+            mRecorder.setCamera(camera);
+            // 设置从麦克风采集声音(或来自录像机的声音AudioSource.CAMCORDER)
+//            mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+            // 设置从摄像头采集图像
+            mRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
+            //录制角度
+//            mRecorder.setOrientationHint(90);
+            // 设置视频文件的输出格式
+            // 必须在设置声音编码格式、图像编码格式之前设置
+            mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+            // 设置声音编码的格式
+//            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+            // 设置图像编码的格式
+            mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+            mRecorder.setVideoEncodingBitRate(5*screenW*screenH);
+            mRecorder.setVideoSize(screenW, screenH);
+            // 每秒24帧
+            mRecorder.setVideoFrameRate(24);
+            mRecorder.setOutputFile(videoFile.getAbsolutePath());
+            // 指定使用SurfaceView来预览视频
+            mRecorder.setPreviewDisplay(sfHolder.getSurface());
+            mRecorder.prepare();
+            // 开始录制
+            mRecorder.start();
+        }catch (IOException e){
+        }
+    }
+
+    /**
+     * 停止录制
+     */
+    private void stopRecode(){
+        switchCameraBtn.setVisibility(View.VISIBLE);
+        stopPlayer();
+        // 设置该组件让屏幕不会自动关闭
+        surfaceView.getHolder().setKeepScreenOn(false);
+        Log.i("LOGCAT", "录制完毕， 存储为 " + videoFile.getPath());
+        cameraBtn.setText("录制完毕");
+        // 停止录制
+        mRecorder.stop();
+        // 释放资源
+        mRecorder.release();
+        mRecorder = null;
+        makeBtn.setVisibility(View.VISIBLE);
+    }
 
     /**
      * 打开文件
