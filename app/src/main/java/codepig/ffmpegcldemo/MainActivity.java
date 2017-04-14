@@ -258,8 +258,8 @@ public class MainActivity extends AppCompatActivity {
             mRecorder = new MediaRecorder();
             mRecorder.reset();
             mRecorder.setCamera(camera);
-            // 设置从麦克风采集声音(或来自录像机的声音AudioSource.CAMCORDER)
-//            mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+            // 设置从麦克风采集声音(麦克风声音MIC,录像机的声音AudioSource.CAMCORDER,系统声音REMOTE_SUBMIX)
+//            mRecorder.setAudioSource(MediaRecorder.AudioSource.REMOTE_SUBMIX);
             // 设置从摄像头采集图像
             mRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
             //录制角度
@@ -268,7 +268,7 @@ public class MainActivity extends AppCompatActivity {
             // 必须在设置声音编码格式、图像编码格式之前设置
             mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
             // 设置声音编码的格式
-//            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+//            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
             // 设置图像编码的格式
             mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
             mRecorder.setVideoEncodingBitRate(5*screenW*screenH);
@@ -578,10 +578,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onDestroy() {
-        Log.d("LOGCAT", "player onDestroy");
+    public void onPause() {
+        Log.d("LOGCAT", "player onPause");
         camera.release();
         camera=null;
+        super.onPause();
+    }
+
+    @Override
+    public void onResume() {
+        Log.d("LOGCAT", "player onResume");
+        initSurfaceView();
+        openCamera();
+        super.onResume();
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.d("LOGCAT", "player onDestroy");
         super.onDestroy();
     }
 }

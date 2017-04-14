@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!--<uses-permission android:name="android.permission.CAPTURE_AUDIO_OUTPUT" />-->
     <uses-permission android:name="android.permission.INTERNET" />
 
     <uses-feature android:name="android.hardware.camera" />
