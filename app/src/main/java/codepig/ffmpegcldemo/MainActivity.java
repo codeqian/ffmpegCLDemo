@@ -53,10 +53,11 @@ public class MainActivity extends AppCompatActivity {
     private String outputFilename="outputVideo";
     private Camera camera;
     // 录制的视频文件
-    private File videoFile ;
+    private File videoFile;
     private MediaRecorder mRecorder;
     private boolean hasCamera=false;
     private int camIdx=Camera.CameraInfo.CAMERA_FACING_FRONT;
+    private fileListener writeFileListener;
 
     private final int IMAGE_FILE=1;
     private final int MUSIC_FILE=2;
@@ -278,9 +279,20 @@ public class MainActivity extends AppCompatActivity {
             mRecorder.setOutputFile(videoFile.getAbsolutePath());
             // 指定使用SurfaceView来预览视频
             mRecorder.setPreviewDisplay(sfHolder.getSurface());
+            //这个监听可以用来控制录制时长
+//            mRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
+//                @Override
+//                public void onInfo(MediaRecorder mediaRecorder, int i, int i1) {
+//                    Log.d("LOGCAT", "RecordService got MediaRecorder onInfo callback with what: " + i + " extra: " + i1);
+//                    isRecording = false;
+//                }
+//            });
             mRecorder.prepare();
             // 开始录制
             mRecorder.start();
+            //监听文件的写入
+            writeFileListener = new fileListener(videoFile.getPath(),this);
+            writeFileListener.startWatching();
         }catch (IOException e){
         }
     }
@@ -300,7 +312,6 @@ public class MainActivity extends AppCompatActivity {
         // 释放资源
         mRecorder.release();
         mRecorder = null;
-        makeBtn.setVisibility(View.VISIBLE);
     }
 
     /**
@@ -378,12 +389,6 @@ public class MainActivity extends AppCompatActivity {
                         String[] pojo = {MediaStore.Audio.Media.DATA};
                         Cursor cursor = getContentResolver().query(audioUri, pojo, null, null, null);
                         if (cursor != null) {
-                            /*这部分代码在ACTION_GET_CONTENT模式下为空，在ACTION_PICK模式下可以得到具体地址
-                            int colunm_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-                            cursor.moveToFirst();
-                            imageUrl = cursor.getString(colunm_index);
-                            cursor.close();
-                            */
                         }else{
                             musicUrl=audioUri.getPath();
                             Log.d("LOGCAT","path:"+musicUrl);
@@ -399,12 +404,6 @@ public class MainActivity extends AppCompatActivity {
                         String[] pojo = {MediaStore.Video.Media.DATA};
                         Cursor cursor = getContentResolver().query(videoUri, pojo, null, null, null);
                         if (cursor != null) {
-                            /*这部分代码在ACTION_GET_CONTENT模式下为空，在ACTION_PICK模式下可以得到具体地址
-                            int colunm_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-                            cursor.moveToFirst();
-                            imageUrl = cursor.getString(colunm_index);
-                            cursor.close();
-                            */
                         }else{
                             videoUrl=videoUri.getPath();
                             Log.d("LOGCAT","path:"+videoUrl);
@@ -535,7 +534,7 @@ public class MainActivity extends AppCompatActivity {
                 commands[2] = videoUrl;
                 //水印
                 commands[3] = "-i";
-                commands[4] = imageUrl;
+                commands[4] = imageUrl;//此处的图片地址换成带透明通道的视频就可以合成动态视频遮罩。
                 commands[5] = "-filter_complex";
                 commands[6] = "overlay=(main_w-overlay_w)/2:(main_h-overlay_h)/2";
                 //音乐
@@ -545,7 +544,6 @@ public class MainActivity extends AppCompatActivity {
                 commands[9] = "-y";
                 //输出文件
                 commands[10] = outputUrl;
-
 //                commands[10] = "-strict";//标准的严格性
 //                commands[11] = "-2";
 //                commands[12] = "-y";//直接覆盖输出文件
@@ -575,6 +573,14 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         ThreadPoolUtils.execute(compoundRun);
+    }
+
+    /**
+     * 确保视频保保存完毕后才可执行合成操作，否则可能引发空指针错误
+     */
+    public void fileClosed(){
+        makeBtn.setVisibility(View.VISIBLE);
+        writeFileListener.stopWatching();
     }
 
     @Override
