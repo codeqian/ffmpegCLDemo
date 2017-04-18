@@ -1,4 +1,4 @@
-package codepig.ffmpegcldemo;
+package codepig.ffmpegcldemo.net;
 
 import android.content.Context;
 import android.graphics.Bitmap;

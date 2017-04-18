@@ -1,4 +1,4 @@
-package codepig.ffmpegcldemo;
+package codepig.ffmpegcldemo.utils;
 
 import android.content.Context;
 import android.os.Environment;

@@ -1,7 +1,9 @@
-package codepig.ffmpegcldemo;
+package codepig.ffmpegcldemo.listener;
 
 import android.os.FileObserver;
 import android.util.Log;
+
+import codepig.ffmpegcldemo.MainActivity;
 
 /**
  * 文件监听类

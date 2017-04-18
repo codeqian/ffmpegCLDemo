@@ -29,6 +29,13 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.IOException;
 
+import codepig.ffmpegcldemo.config.deviceInfo;
+import codepig.ffmpegcldemo.ffmpegCentre.ffmpegCommandCentre;
+import codepig.ffmpegcldemo.listener.fileListener;
+import codepig.ffmpegcldemo.net.imageLoader;
+import codepig.ffmpegcldemo.utils.FileUtil;
+import codepig.ffmpegcldemo.utils.ThreadPoolUtils;
+
 public class MainActivity extends AppCompatActivity {
     private Context context;
     private Button cameraBtn,imgBtn,musicBtn,makeBtn,switchCameraBtn;
@@ -62,8 +69,6 @@ public class MainActivity extends AppCompatActivity {
     private final int IMAGE_FILE=1;
     private final int MUSIC_FILE=2;
     private final int VIDEO_FILE=3;
-    private final int screenW=1280;
-    private final int screenH=720;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        outputUrl=FileUtil.getPath() + "/"+outputFilename+".mp4";
+        outputUrl= FileUtil.getPath() + "/"+outputFilename+".mp4";
         hasCamera=checkCameraHardware(context);
 
         //隐藏系统导航栏(android4.1及以上)
@@ -128,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
         surfaceView = (SurfaceView) this.findViewById(R.id.surfaceView);
         sfHolder=surfaceView.getHolder();
         // 设置分辨率
-        sfHolder.setFixedSize(screenW, screenH);
+        sfHolder.setFixedSize(deviceInfo.screenWtdth, deviceInfo.screenHeight);
         sfHolder.addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceDestroyed(SurfaceHolder holder) {
@@ -185,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             camera = Camera.open(camIdx);
             Parameters cP=camera.getParameters();
-            cP.setPreviewSize(screenW,screenH);
+            cP.setPreviewSize(deviceInfo.screenWtdth,deviceInfo.screenHeight);
             camera.setParameters(cP);
             camera.setPreviewDisplay(sfHolder);//通过SurfaceView显示取景画面
             camera.startPreview(); //开始预览
@@ -272,8 +277,8 @@ public class MainActivity extends AppCompatActivity {
 //            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
             // 设置图像编码的格式
             mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-            mRecorder.setVideoEncodingBitRate(5*screenW*screenH);
-            mRecorder.setVideoSize(screenW, screenH);
+            mRecorder.setVideoEncodingBitRate(5*deviceInfo.screenWtdth*deviceInfo.screenHeight);
+            mRecorder.setVideoSize(deviceInfo.screenWtdth, deviceInfo.screenHeight);
             // 每秒24帧
             mRecorder.setVideoFrameRate(24);
             mRecorder.setOutputFile(videoFile.getAbsolutePath());
@@ -513,42 +518,27 @@ public class MainActivity extends AppCompatActivity {
     };
 
     /**
-     * 添加图片水印及音乐
+     * ffmpeg操作
      */
     private void makeVideo(){
-        if(imageUri==null){
-            Toast.makeText(this, "少年，不先选张图片么？", Toast.LENGTH_SHORT).show();
+        String[] commands;
+        if(imageUri==null && audioUri==null){
+            Toast.makeText(this, "少年，不加点什么吗？", Toast.LENGTH_SHORT).show();
             return;
+        }else if(imageUri!=null && audioUri!=null){
+            commands= ffmpegCommandCentre.addPicAndMusic(imageUrl,musicUrl,videoUrl,outputUrl);
+        }else{
+            if(imageUri!=null){
+                commands=ffmpegCommandCentre.addwaterMark(imageUrl,videoUrl,outputUrl);
+            }else{
+                commands=ffmpegCommandCentre.addMusic(musicUrl,videoUrl,outputUrl);
+            }
         }
-        if(audioUri==null){
-            Toast.makeText(this, "少年，不先选首音乐么？", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        final String[] _commands=commands;
         Runnable compoundRun=new Runnable() {
             @Override
             public void run() {
-                String[] commands = new String[11];
-                commands[0] = "ffmpeg";
-                //输入
-                commands[1] = "-i";
-                commands[2] = videoUrl;
-                //水印
-                commands[3] = "-i";
-                commands[4] = imageUrl;//此处的图片地址换成带透明通道的视频就可以合成动态视频遮罩。
-                commands[5] = "-filter_complex";
-                commands[6] = "overlay=(main_w-overlay_w)/2:(main_h-overlay_h)/2";
-                //音乐
-                commands[7] = "-i";
-                commands[8] = musicUrl;
-                //覆盖输出
-                commands[9] = "-y";
-                //输出文件
-                commands[10] = outputUrl;
-//                commands[10] = "-strict";//标准的严格性
-//                commands[11] = "-2";
-//                commands[12] = "-y";//直接覆盖输出文件
-
-                FFmpegKit.execute(commands, new FFmpegKit.KitInterface() {
+                FFmpegKit.execute(_commands, new FFmpegKit.KitInterface() {
                     @Override
                     public void onStart() {
                         Log.d("FFmpegLog LOGCAT","FFmpeg 命令行开始执行了...");
