@@ -47,30 +47,35 @@
         android:layout_height="wrap_content">
         <Button
             android:text="开始录制"
+            android:background="@drawable/btn"
             android:id="@+id/cameraBtn"
             android:textSize="10sp"
             android:layout_width="70dp"
             android:layout_height="40dp" />
         <Button
             android:textSize="10sp"
+            android:background="@drawable/btn"
             android:layout_width="70dp"
             android:layout_height="40dp"
             android:id="@+id/switchCameraBtn"
             android:text="切换镜头"/>
         <Button
             android:text="选择图片"
+            android:background="@drawable/btn"
             android:id="@+id/imgBtn"
             android:textSize="10sp"
             android:layout_width="70dp"
             android:layout_height="40dp" />
         <Button
             android:text="选择音乐"
+            android:background="@drawable/btn"
             android:id="@+id/musicBtn"
             android:textSize="10sp"
             android:layout_width="70dp"
             android:layout_height="40dp" />
         <Button
             android:visibility="gone"
+            android:background="@drawable/btn"
             android:text="合成视频"
             android:id="@+id/makeBtn"
             android:textSize="10sp"

@@ -160,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-                Log.d("LOGCAT", "surfaceChanged");
+//                Log.d("LOGCAT", "surfaceChanged");
             }
         });
     }
@@ -523,8 +523,9 @@ public class MainActivity extends AppCompatActivity {
     private void makeVideo(){
         String[] commands;
         if(imageUri==null && audioUri==null){
-            Toast.makeText(this, "少年，不加点什么吗？", Toast.LENGTH_SHORT).show();
-            return;
+//            Toast.makeText(this, "少年，不加点什么吗？", Toast.LENGTH_SHORT).show();
+//            return;
+            commands= ffmpegCommandCentre.addTimeMark(videoUrl,outputUrl);
         }else if(imageUri!=null && audioUri!=null){
             commands= ffmpegCommandCentre.addPicAndMusic(imageUrl,musicUrl,videoUrl,outputUrl);
         }else{
@@ -566,7 +567,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * 确保视频保保存完毕后才可执行合成操作，否则可能引发空指针错误
+     * 确保视频保保存完毕后才可执行合成操作，否则可能引发ffmpeg的空指针错误
      */
     public void fileClosed(){
         makeBtn.setVisibility(View.VISIBLE);

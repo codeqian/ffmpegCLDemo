@@ -11,7 +11,12 @@ import java.util.Locale;
  */
 public class mathFactory {
     private static String[] tKey={"01136c5948d353b1bg2","01136c5948d353b1bg2rfj"};//获取hls时用的校验key.获取下载时用的校验key
-    //将毫秒转换为小时：分钟：秒格式
+
+    /**
+     * 将毫秒转换为小时：分钟：秒格式
+     * @param _ms
+     * @return
+     */
     public static String ms2HMS(int _ms){
         String HMStime;
         _ms/=1000;
@@ -34,7 +39,11 @@ public class mathFactory {
         return HMStime;
     }
 
-    //将毫秒转换为标准日期格式
+    /**
+     * 将毫秒转换为标准日期格式
+     * @param _ms
+     * @return
+     */
     public static String ms2Date(long _ms){
         Date date = new Date(_ms);
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
@@ -62,7 +71,24 @@ public class mathFactory {
         }
     }
 
-    //将大于1万的数字转换为万为单位保留一位小数
+    /**
+     * 获取当前时间的标准格式
+     */
+    public static String currentTimeInDate(){
+        try {
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            Date curDate = new Date(System.currentTimeMillis());
+            return formatter.format(curDate);
+        }catch (Exception e){
+        }
+        return null;
+    }
+
+    /**
+     * 将大于1万的数字转换为万为单位保留一位小数
+     * @param _count
+     * @return
+     */
     public static String changeCountFormat(String _count){
         int _ct= Integer.valueOf(_count).intValue();
         String countStr="";
@@ -76,7 +102,11 @@ public class mathFactory {
         return countStr;
     }
 
-    //格式化文件大小(参数的单位是kb)
+    /**
+     * 格式化文件大小(参数的单位是kb)
+     * @param _s
+     * @return
+     */
     public static String changeSizeFormat(int _s){
         int _ct= Integer.valueOf(_s).intValue();
         String _Str="";
@@ -90,7 +120,12 @@ public class mathFactory {
         return _Str;
     }
 
-    //计算时间差
+    /**
+     * 计算时间差
+     * @param startDate
+     * @param endDate
+     * @return
+     */
     public static String DateDistance(Date startDate, Date endDate){
         if(startDate == null ||endDate == null){
             return null;
@@ -129,7 +164,11 @@ public class mathFactory {
 //        }
     }
 
-    //计算与当前的时间差
+    /**
+     * 计算与当前的时间差
+     * @param _ms
+     * @return
+     */
     public static String DateDistance2now(long _ms){
         SimpleDateFormat DateF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         try {
