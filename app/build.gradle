@@ -18,6 +18,10 @@ android {
         }
     }
 
+//    ndk{
+//        moduleName "ffmpeginvoke"
+//    }
+
     sourceSets {
         main {
             jniLibs.srcDirs = ['src/main/libs']

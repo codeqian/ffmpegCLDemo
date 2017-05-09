@@ -22,12 +22,14 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import codepig.ffmpegcldemo.config.deviceInfo;
 import codepig.ffmpegcldemo.ffmpegCentre.ffmpegCommandCentre;
@@ -35,12 +37,14 @@ import codepig.ffmpegcldemo.listener.fileListener;
 import codepig.ffmpegcldemo.net.imageLoader;
 import codepig.ffmpegcldemo.utils.FileUtil;
 import codepig.ffmpegcldemo.utils.ThreadPoolUtils;
+import codepig.ffmpegcldemo.utils.bitmapFactory;
 
 public class MainActivity extends AppCompatActivity {
     private Context context;
     private Button cameraBtn,imgBtn,musicBtn,makeBtn,switchCameraBtn;
     private ImageView imgPreview;
     private LinearLayout bufferIcon;
+    private EditText title_t;
     private SurfaceView surfaceView;
     private MediaPlayer mPlayer;
     private MediaPlayer aPlayer;
@@ -54,10 +58,12 @@ public class MainActivity extends AppCompatActivity {
     private String imageUrl="";//水印图文件
     private String musicUrl="";//音乐文件
     private String outputUrl="";//输出视频文件
+    private String textMarkUrl="";//文字水印图
     private int file_type=0;
     private boolean isRecording = false;
     private String recordFilename="testVideo";
     private String outputFilename="outputVideo";
+    private String textMarkFilename="textMark";
     private Camera camera;
     // 录制的视频文件
     private File videoFile;
@@ -85,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
         imgBtn=(Button) findViewById(R.id.imgBtn);
         musicBtn=(Button) findViewById(R.id.musicBtn);
         makeBtn=(Button) findViewById(R.id.makeBtn);
+        title_t=(EditText) findViewById(R.id.title_t);
         imgPreview=(ImageView) findViewById(R.id.imgPreview);
         bufferIcon=(LinearLayout) findViewById(R.id.bufferIcon);
 
@@ -227,6 +234,20 @@ public class MainActivity extends AppCompatActivity {
                         startRecode();
                     }else{
                         stopRecode();
+                    }
+                    //先生成文字图片
+                    final String _title=title_t.getText().toString();
+                    textMarkUrl=FileUtil.getPath() + "/" + textMarkFilename + ".png";
+                    if(_title!=null &&! _title.equals("")) {
+                        Runnable bmpR=new Runnable() {
+                            @Override
+                            public void run() {
+                                ArrayList<String> _data = new ArrayList<>();
+                                _data.add(_title);
+                                bitmapFactory.writeImage(textMarkUrl, _data);
+                            }
+                        };
+                        ThreadPoolUtils.execute(bmpR);
                     }
                     break;
                 case R.id.imgBtn:
@@ -525,7 +546,7 @@ public class MainActivity extends AppCompatActivity {
         if(imageUri==null && audioUri==null){
 //            Toast.makeText(this, "少年，不加点什么吗？", Toast.LENGTH_SHORT).show();
 //            return;
-            commands= ffmpegCommandCentre.addTimeMark(videoUrl,outputUrl);
+            commands= ffmpegCommandCentre.addTimeMark(textMarkUrl,videoUrl,outputUrl);
         }else if(imageUri!=null && audioUri!=null){
             commands= ffmpegCommandCentre.addPicAndMusic(imageUrl,musicUrl,videoUrl,outputUrl);
         }else{
