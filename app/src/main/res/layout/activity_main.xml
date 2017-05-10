@@ -47,8 +47,10 @@
         <EditText
             android:maxLines="1"
             android:id="@+id/title_t"
+            android:textSize="30sp"
+            android:gravity="center"
             android:layout_margin="@dimen/item_margin"
-            android:hint="输入标题"
+            android:hint="要不要来一个标题？"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
         <LinearLayout

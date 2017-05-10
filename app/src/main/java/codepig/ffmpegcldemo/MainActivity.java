@@ -242,9 +242,7 @@ public class MainActivity extends AppCompatActivity {
                         Runnable bmpR=new Runnable() {
                             @Override
                             public void run() {
-                                ArrayList<String> _data = new ArrayList<>();
-                                _data.add(_title);
-                                bitmapFactory.writeImage(textMarkUrl, _data);
+                                bitmapFactory.writeImage(textMarkUrl, _title);
                             }
                         };
                         ThreadPoolUtils.execute(bmpR);
@@ -542,20 +540,24 @@ public class MainActivity extends AppCompatActivity {
      * ffmpeg操作
      */
     private void makeVideo(){
-        String[] commands;
-        if(imageUri==null && audioUri==null){
-//            Toast.makeText(this, "少年，不加点什么吗？", Toast.LENGTH_SHORT).show();
-//            return;
-            commands= ffmpegCommandCentre.addTimeMark(textMarkUrl,videoUrl,outputUrl);
-        }else if(imageUri!=null && audioUri!=null){
-            commands= ffmpegCommandCentre.addPicAndMusic(imageUrl,musicUrl,videoUrl,outputUrl);
-        }else{
-            if(imageUri!=null){
-                commands=ffmpegCommandCentre.addwaterMark(imageUrl,videoUrl,outputUrl);
-            }else{
-                commands=ffmpegCommandCentre.addMusic(musicUrl,videoUrl,outputUrl);
-            }
+        //        if(imageUri==null && audioUri==null){
+////            Toast.makeText(this, "少年，不加点什么吗？", Toast.LENGTH_SHORT).show();
+////            return;
+//            commands= ffmpegCommandCentre.addTextMark(textMarkUrl,videoUrl,outputUrl);
+//        }else if(imageUri!=null && audioUri!=null){
+//            commands= ffmpegCommandCentre.addPicAndMusic(imageUrl,musicUrl,videoUrl,outputUrl);
+//        }else{
+//            if(imageUri!=null){
+//                commands=ffmpegCommandCentre.addImageMark(imageUrl,videoUrl,outputUrl);
+//            }else{
+//                commands=ffmpegCommandCentre.addMusic(musicUrl,videoUrl,outputUrl);
+//            }
+//        }
+        if(imageUri==null && audioUri==null && textMarkUrl.equals("")) {
+            Toast.makeText(this, "少年，不加点什么吗？", Toast.LENGTH_SHORT).show();
+            return;
         }
+        String[] commands= ffmpegCommandCentre.makeVideo(textMarkUrl,imageUrl,musicUrl,videoUrl,outputUrl);
         final String[] _commands=commands;
         Runnable compoundRun=new Runnable() {
             @Override

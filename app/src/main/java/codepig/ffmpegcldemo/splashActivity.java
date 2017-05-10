@@ -6,7 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 public class splashActivity extends AppCompatActivity {
-    private int skipCount=3;
+    private int skipCount=1;
     private Handler splashHandler;
     private Runnable enterRunnable;
     @Override
