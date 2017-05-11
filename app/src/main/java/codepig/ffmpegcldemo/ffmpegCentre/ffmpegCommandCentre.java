@@ -91,14 +91,14 @@ public class ffmpegCommandCentre {
         _commands.add(videoUrl);
         //文字水印
         if(!textIimageUrl.equals("") || !imageUrl.equals("")){
-            if(!textIimageUrl.equals("")){
-                _commands.add("-i");
-                _commands.add(textIimageUrl);
-            }
             //图片水印
             if(!imageUrl.equals("")) {
                 _commands.add("-i");
                 _commands.add(imageUrl);//此处的图片地址换成带透明通道的视频就可以合成动态视频遮罩。
+            }
+            if(!textIimageUrl.equals("")){
+                _commands.add("-i");
+                _commands.add(textIimageUrl);
             }
             _commands.add("-filter_complex");
             if(textIimageUrl.equals("")){
@@ -106,7 +106,7 @@ public class ffmpegCommandCentre {
             }else if(imageUrl.equals("")) {
                 _commands.add("overlay=(main_w-overlay_w)/2:(main_h-overlay_h)/2");
             }else{
-                _commands.add("[1:v]scale=200:100[img1];[2:v]scale=" + deviceInfo.screenWtdth + ":" + deviceInfo.screenHeight + "[img2];[0:v][img1]overlay=(main_w-overlay_w)/2:(main_h-overlay_h)/2[bkg];[bkg][img2]overlay=0:0");
+                _commands.add("[1:v]scale=" + deviceInfo.screenWtdth + ":" + deviceInfo.screenHeight + "[img1];[2:v]scale=400:200[img2];[0:v][img1]overlay=0:0[bkg];[bkg][img2]overlay=(main_w-overlay_w)/2:(main_h-overlay_h)/2");
             }
         }
         //音乐

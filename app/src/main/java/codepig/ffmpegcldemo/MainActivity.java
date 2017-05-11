@@ -23,13 +23,15 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import codepig.ffmpegcldemo.config.deviceInfo;
 import codepig.ffmpegcldemo.ffmpegCentre.ffmpegCommandCentre;
@@ -38,13 +40,17 @@ import codepig.ffmpegcldemo.net.imageLoader;
 import codepig.ffmpegcldemo.utils.FileUtil;
 import codepig.ffmpegcldemo.utils.ThreadPoolUtils;
 import codepig.ffmpegcldemo.utils.bitmapFactory;
+import codepig.ffmpegcldemo.values.videoInfo;
 
 public class MainActivity extends AppCompatActivity {
     private Context context;
-    private Button cameraBtn,imgBtn,musicBtn,makeBtn,switchCameraBtn;
+    private EditText title_t,author_t,description_t;
+    private TextView skip_t;
+    private Button cameraBtn,stopCameraBtn,imgBtn,movBtn,musicBtn,makeBtn,switchCameraBtn,enter_Btn,titleBtn;
+    private LinearLayout titlePlan,controlPlan;
+    private FrameLayout recodePlan;
     private ImageView imgPreview;
     private LinearLayout bufferIcon;
-    private EditText title_t;
     private SurfaceView surfaceView;
     private MediaPlayer mPlayer;
     private MediaPlayer aPlayer;
@@ -87,26 +93,46 @@ public class MainActivity extends AppCompatActivity {
 
     private void findView(){
         cameraBtn=(Button) findViewById(R.id.cameraBtn);
+        stopCameraBtn=(Button) findViewById(R.id.stopCameraBtn);
         switchCameraBtn=(Button) findViewById(R.id.switchCameraBtn);
+        titleBtn=(Button) findViewById(R.id.titleBtn);
+        titlePlan=(LinearLayout) findViewById(R.id.titlePlan);
+        controlPlan=(LinearLayout) findViewById(R.id.controlPlan);
         imgBtn=(Button) findViewById(R.id.imgBtn);
+        movBtn=(Button) findViewById(R.id.movBtn);
         musicBtn=(Button) findViewById(R.id.musicBtn);
         makeBtn=(Button) findViewById(R.id.makeBtn);
-        title_t=(EditText) findViewById(R.id.title_t);
         imgPreview=(ImageView) findViewById(R.id.imgPreview);
         bufferIcon=(LinearLayout) findViewById(R.id.bufferIcon);
+        recodePlan=(FrameLayout) findViewById(R.id.recodePlan);
+        title_t=(EditText) findViewById(R.id.title_t);
+        skip_t=(TextView) findViewById(R.id.skip_t);
+        author_t=(EditText) findViewById(R.id.author_t);
+        description_t=(EditText) findViewById(R.id.description_t);
+        enter_Btn=(Button) findViewById(R.id.enter_Btn);
 
         bufferIcon.setVisibility(View.GONE);
+        makeBtn.setVisibility(View.GONE);
+        controlPlan.setVisibility(View.GONE);
+        recodePlan.setVisibility(View.GONE);
+        stopCameraBtn.setVisibility(View.GONE);
+
         imgBtn.setOnClickListener(clickBtn);
+        movBtn.setOnClickListener(clickBtn);
         musicBtn.setOnClickListener(clickBtn);
         makeBtn.setOnClickListener(clickBtn);
         switchCameraBtn.setOnClickListener(clickBtn);
         cameraBtn.setOnClickListener(clickBtn);
+        stopCameraBtn.setOnClickListener(clickBtn);
+        enter_Btn.setOnClickListener(clickBtn);
+        titleBtn.setOnClickListener(clickBtn);
+        skip_t.setOnClickListener(clickBtn);
 
         //初始化播放器
         mPlayer=new MediaPlayer();
-        mHandler = new Handler() {  //初始化handler
+        mHandler = new Handler() {
             @Override
-            public void handleMessage(Message msg) { //通过handleMessage()来处理传来的消息
+            public void handleMessage(Message msg) {//UI处理
                 switch (msg.what){
                     case 0:
                         imgPreview.setImageBitmap(imageBitmap);
@@ -117,6 +143,7 @@ public class MainActivity extends AppCompatActivity {
                     case 2:
                         bufferIcon.setVisibility(View.GONE);
                         makeBtn.setVisibility(View.GONE);
+                        cameraBtn.setVisibility(View.VISIBLE);
                         break;
                     default:
                         break;
@@ -124,13 +151,15 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
+        //输出文件地址
         outputUrl= FileUtil.getPath() + "/"+outputFilename+".mp4";
+        //检测是否存在摄像头
         hasCamera=checkCameraHardware(context);
 
         //隐藏系统导航栏(android4.1及以上)
-        View decorView = getWindow().getDecorView();
-        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN;
-        decorView.setSystemUiVisibility(uiOptions);
+//        View decorView = getWindow().getDecorView();
+//        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN;
+//        decorView.setSystemUiVisibility(uiOptions);
     }
 
     /**
@@ -223,30 +252,24 @@ public class MainActivity extends AppCompatActivity {
                     openCamera();
                     break;
                 case R.id.cameraBtn:
+                    cameraBtn.setVisibility(View.GONE);
+                    stopCameraBtn.setVisibility(View.VISIBLE);
+                    controlPlan.setVisibility(View.GONE);
                     //录制
 //                    getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);//保持屏幕常亮
-                    isRecording = !isRecording;
+                    isRecording = true;
                     if(audioUri!=null) {
                         playMusic(musicUrl);
                     }
-                    if(isRecording)
-                    {
-                        startRecode();
-                    }else{
-                        stopRecode();
-                    }
-                    //先生成文字图片
-                    final String _title=title_t.getText().toString();
-                    textMarkUrl=FileUtil.getPath() + "/" + textMarkFilename + ".png";
-                    if(_title!=null &&! _title.equals("")) {
-                        Runnable bmpR=new Runnable() {
-                            @Override
-                            public void run() {
-                                bitmapFactory.writeImage(textMarkUrl, _title);
-                            }
-                        };
-                        ThreadPoolUtils.execute(bmpR);
-                    }
+                    startRecode();
+                    break;
+                case R.id.stopCameraBtn:
+                    stopCameraBtn.setVisibility(View.GONE);
+                    cameraBtn.setVisibility(View.VISIBLE);
+                    controlPlan.setVisibility(View.VISIBLE);
+                    isRecording = false;
+                    stopRecode();
+                    makeBtn.setVisibility(View.VISIBLE);
                     break;
                 case R.id.imgBtn:
                     file_type=IMAGE_FILE;
@@ -259,6 +282,38 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.makeBtn:
                     //开始合并
                     makeVideo();
+                    cameraBtn.setVisibility(View.GONE);
+                    break;
+                case R.id.enter_Btn:
+                    videoInfo.vTitle=title_t.getText().toString();
+                    videoInfo.author=author_t.getText().toString();
+                    videoInfo.description=description_t.getText().toString();
+                    titlePlan.setVisibility(View.GONE);
+                    controlPlan.setVisibility(View.VISIBLE);
+                    recodePlan.setVisibility(View.VISIBLE);
+                    //先生成文字水印图片
+                    final String _title= videoInfo.vTitle;
+                    if(_title!=null &&! _title.equals("")) {
+                        textMarkUrl=FileUtil.getPath() + "/" + textMarkFilename + ".png";
+                        Runnable bmpR=new Runnable() {
+                            @Override
+                            public void run() {
+                                bitmapFactory.writeImage(textMarkUrl, _title);
+                            }
+                        };
+                        ThreadPoolUtils.execute(bmpR);
+                    }
+                    break;
+                case R.id.skip_t:
+                    startActivity(new Intent(getApplication(),MainActivity.class));
+                    titlePlan.setVisibility(View.GONE);
+                    controlPlan.setVisibility(View.VISIBLE);
+                    recodePlan.setVisibility(View.VISIBLE);
+                    break;
+                case R.id.titleBtn:
+                    titlePlan.setVisibility(View.VISIBLE);
+                    controlPlan.setVisibility(View.GONE);
+                    recodePlan.setVisibility(View.GONE);
                     break;
                 default:
                     break;
@@ -272,7 +327,6 @@ public class MainActivity extends AppCompatActivity {
     private void startRecode(){
         try {
             Log.i("LOGCAT", "Start recording...");
-            cameraBtn.setText("正在录制");
             switchCameraBtn.setVisibility(View.GONE);
             // 创建保存录制视频的视频文件
             videoFile = new File(FileUtil.getPath() + "/"+recordFilename+".mp4");
@@ -330,7 +384,6 @@ public class MainActivity extends AppCompatActivity {
         // 设置该组件让屏幕不会自动关闭
         surfaceView.getHolder().setKeepScreenOn(false);
         Log.i("LOGCAT", "录制完毕， 存储为 " + videoFile.getPath());
-        cameraBtn.setText("录制完毕");
         // 停止录制
         mRecorder.stop();
         // 释放资源
@@ -540,19 +593,6 @@ public class MainActivity extends AppCompatActivity {
      * ffmpeg操作
      */
     private void makeVideo(){
-        //        if(imageUri==null && audioUri==null){
-////            Toast.makeText(this, "少年，不加点什么吗？", Toast.LENGTH_SHORT).show();
-////            return;
-//            commands= ffmpegCommandCentre.addTextMark(textMarkUrl,videoUrl,outputUrl);
-//        }else if(imageUri!=null && audioUri!=null){
-//            commands= ffmpegCommandCentre.addPicAndMusic(imageUrl,musicUrl,videoUrl,outputUrl);
-//        }else{
-//            if(imageUri!=null){
-//                commands=ffmpegCommandCentre.addImageMark(imageUrl,videoUrl,outputUrl);
-//            }else{
-//                commands=ffmpegCommandCentre.addMusic(musicUrl,videoUrl,outputUrl);
-//            }
-//        }
         if(imageUri==null && audioUri==null && textMarkUrl.equals("")) {
             Toast.makeText(this, "少年，不加点什么吗？", Toast.LENGTH_SHORT).show();
             return;

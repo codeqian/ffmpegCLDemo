@@ -12,7 +12,7 @@
         <!--渲染层-->
         <SurfaceView
             android:layout_centerInParent="true"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/surfaceView"/>
         <!--缓冲图标-->
@@ -40,65 +40,173 @@
             android:layout_height="match_parent" />
     </RelativeLayout>
     <LinearLayout
-        android:orientation="vertical"
+        android:orientation="horizontal"
+        android:background="@color/trasnsWhite"
+        android:padding="4dp"
+        android:id="@+id/controlPlan"
         android:layout_alignParentBottom="true"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-        <EditText
-            android:maxLines="1"
-            android:id="@+id/title_t"
-            android:textSize="30sp"
-            android:gravity="center"
-            android:layout_margin="@dimen/item_margin"
-            android:hint="要不要来一个标题？"
-            android:layout_width="match_parent"
+        <Button
+            android:textSize="10sp"
+            android:layout_margin="@dimen/item_margin_small"
+            android:background="@drawable/btn"
+            android:layout_width="70dp"
+            android:layout_height="30dp"
+            android:id="@+id/switchCameraBtn"
+            android:text="切换前后镜头"/>
+        <Button
+            android:text="选择相框图片"
+            android:layout_margin="@dimen/item_margin_small"
+            android:background="@drawable/btn"
+            android:id="@+id/imgBtn"
+            android:textSize="10sp"
+            android:layout_width="70dp"
+            android:layout_height="30dp" />
+        <Button
+            android:text="选择动效视频"
+            android:layout_margin="@dimen/item_margin_small"
+            android:background="@drawable/btn"
+            android:id="@+id/movBtn"
+            android:textSize="10sp"
+            android:layout_width="70dp"
+            android:layout_height="30dp" />
+        <Button
+            android:text="选择背景音乐"
+            android:layout_margin="@dimen/item_margin_small"
+            android:background="@drawable/btn"
+            android:id="@+id/musicBtn"
+            android:textSize="10sp"
+            android:layout_width="70dp"
+            android:layout_height="30dp" />
+        <Button
+            android:layout_margin="@dimen/item_margin_small"
+            android:background="@drawable/btn"
+            android:text="修改标题"
+            android:id="@+id/titleBtn"
+            android:textSize="10sp"
+            android:layout_width="70dp"
+            android:layout_height="30dp" />
+        <Button
+            android:layout_margin="@dimen/item_margin_small"
+            android:background="@drawable/btn"
+            android:text="合成视频"
+            android:id="@+id/makeBtn"
+            android:textSize="10sp"
+            android:layout_width="70dp"
+            android:layout_height="30dp" />
+    </LinearLayout>
+    <FrameLayout
+        android:background="@drawable/btncircle"
+        android:id="@+id/recodePlan"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_margin="10dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true">
+        <Button
+            android:layout_gravity="center"
+            android:background="@drawable/btnpoint"
+            android:id="@+id/cameraBtn"
+            android:layout_width="40dp"
+            android:layout_height="40dp" />
+        <Button
+            android:layout_gravity="center"
+            android:background="@color/redBtn"
+            android:id="@+id/stopCameraBtn"
+            android:layout_width="30dp"
+            android:layout_height="30dp" />
+    </FrameLayout>
+    <LinearLayout
+        android:orientation="vertical"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:id="@+id/titlePlan"
+        android:background="@drawable/whitebg"
+        android:layout_margin="40dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <TextView
+            android:text="请输入视频标题及相关信息"
+            android:layout_gravity="center"
+            android:layout_margin="5dp"
+            android:textColor="@android:color/darker_gray"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
         <LinearLayout
             android:orientation="horizontal"
-            android:gravity="center"
+            android:padding="5dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-            <Button
-                android:text="开始录制"
-                android:layout_margin="@dimen/item_margin_small"
-                android:background="@drawable/btn"
-                android:id="@+id/cameraBtn"
-                android:textSize="10sp"
-                android:layout_width="70dp"
-                android:layout_height="40dp" />
-            <Button
-                android:textSize="10sp"
-                android:layout_margin="@dimen/item_margin_small"
-                android:background="@drawable/btn"
-                android:layout_width="70dp"
-                android:layout_height="40dp"
-                android:id="@+id/switchCameraBtn"
-                android:text="切换镜头"/>
-            <Button
-                android:text="选择图片"
-                android:layout_margin="@dimen/item_margin_small"
-                android:background="@drawable/btn"
-                android:id="@+id/imgBtn"
-                android:textSize="10sp"
-                android:layout_width="70dp"
-                android:layout_height="40dp" />
-            <Button
-                android:text="选择音乐"
-                android:layout_margin="@dimen/item_margin_small"
-                android:background="@drawable/btn"
-                android:id="@+id/musicBtn"
-                android:textSize="10sp"
-                android:layout_width="70dp"
-                android:layout_height="40dp" />
-            <Button
-                android:visibility="gone"
-                android:layout_margin="@dimen/item_margin_small"
-                android:background="@drawable/btn"
-                android:text="合成视频"
-                android:id="@+id/makeBtn"
-                android:textSize="10sp"
-                android:layout_width="70dp"
-                android:layout_height="40dp" />
+            <TextView
+                android:text="标题："
+                android:layout_marginRight="5dp"
+                android:textColor="@android:color/darker_gray"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <EditText
+                android:maxLines="1"
+                android:text="这是一个测试视频"
+                android:padding="5dp"
+                android:background="@color/gray"
+                android:id="@+id/title_t"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
         </LinearLayout>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:padding="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:text="作者："
+                android:layout_marginRight="5dp"
+                android:textColor="@android:color/darker_gray"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <EditText
+                android:maxLines="1"
+                android:text="qzd"
+                android:padding="5dp"
+                android:background="@color/gray"
+                android:id="@+id/author_t"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:padding="5dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:text="描述："
+                android:layout_marginRight="5dp"
+                android:textColor="@android:color/darker_gray"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <EditText
+                android:maxLines="1"
+                android:text="没什么好说的"
+                android:padding="5dp"
+                android:background="@color/gray"
+                android:id="@+id/description_t"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+        <Button
+            android:text="就噶"
+            android:background="@drawable/btn"
+            android:layout_margin="5dp"
+            android:id="@+id/enter_Btn"
+            android:layout_width="match_parent"
+            android:layout_height="30dp" />
+        <TextView
+            android:text="做好事不留名，跳过！"
+            android:padding="5dp"
+            android:id="@+id/skip_t"
+            android:textColor="@android:color/darker_gray"
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
     </LinearLayout>
 </RelativeLayout>
