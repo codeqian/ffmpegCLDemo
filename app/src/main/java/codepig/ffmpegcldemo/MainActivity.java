@@ -26,12 +26,14 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import codepig.ffmpegcldemo.config.deviceInfo;
 import codepig.ffmpegcldemo.ffmpegCentre.ffmpegCommandCentre;
@@ -40,20 +42,20 @@ import codepig.ffmpegcldemo.net.imageLoader;
 import codepig.ffmpegcldemo.utils.FileUtil;
 import codepig.ffmpegcldemo.utils.ThreadPoolUtils;
 import codepig.ffmpegcldemo.utils.bitmapFactory;
+import codepig.ffmpegcldemo.utils.mathFactory;
 import codepig.ffmpegcldemo.values.videoInfo;
 
 public class MainActivity extends AppCompatActivity {
     private Context context;
     private EditText title_t,author_t,description_t;
-    private TextView skip_t;
+    private TextView skip_t,currentTime_t,totalTime_t;
+    private SeekBar seekBar;
     private Button cameraBtn,stopCameraBtn,imgBtn,movBtn,musicBtn,makeBtn,switchCameraBtn,enter_Btn,titleBtn;
-    private LinearLayout titlePlan,controlPlan;
+    private LinearLayout titlePlan,controlPlan,bufferIcon,timePlan;
     private FrameLayout recodePlan;
     private ImageView imgPreview;
-    private LinearLayout bufferIcon;
     private SurfaceView surfaceView;
-    private MediaPlayer mPlayer;
-    private MediaPlayer aPlayer;
+    private MediaPlayer mPlayer,aPlayer;
     private Bitmap imageBitmap;
     private Handler mHandler;
     private SurfaceHolder sfHolder;
@@ -66,21 +68,24 @@ public class MainActivity extends AppCompatActivity {
     private String outputUrl="";//输出视频文件
     private String textMarkUrl="";//文字水印图
     private int file_type=0;
-    private boolean isRecording = false;
     private String recordFilename="testVideo";
     private String outputFilename="outputVideo";
     private String textMarkFilename="textMark";
     private Camera camera;
-    // 录制的视频文件
-    private File videoFile;
+    private File videoFile;// 录制的视频文件
     private MediaRecorder mRecorder;
     private boolean hasCamera=false;
     private int camIdx=Camera.CameraInfo.CAMERA_FACING_FRONT;
     private fileListener writeFileListener;
+    private int currentTime=0;//当前已录制时间
+    private int totalTime=0;//音乐文件总时间
+    private Timer presTimer=new Timer();
+    private TimerTask presTask;
 
     private final int IMAGE_FILE=1;
     private final int MUSIC_FILE=2;
     private final int VIDEO_FILE=3;
+    private final int TIMECOUNT=4;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
         titleBtn=(Button) findViewById(R.id.titleBtn);
         titlePlan=(LinearLayout) findViewById(R.id.titlePlan);
         controlPlan=(LinearLayout) findViewById(R.id.controlPlan);
+        timePlan=(LinearLayout) findViewById(R.id.timePlan);
         imgBtn=(Button) findViewById(R.id.imgBtn);
         movBtn=(Button) findViewById(R.id.movBtn);
         musicBtn=(Button) findViewById(R.id.musicBtn);
@@ -107,6 +113,9 @@ public class MainActivity extends AppCompatActivity {
         recodePlan=(FrameLayout) findViewById(R.id.recodePlan);
         title_t=(EditText) findViewById(R.id.title_t);
         skip_t=(TextView) findViewById(R.id.skip_t);
+        seekBar=(SeekBar) findViewById(R.id.seekBar);
+        currentTime_t=(TextView) findViewById(R.id.currentTime_t);
+        totalTime_t=(TextView) findViewById(R.id.totalTime_t);
         author_t=(EditText) findViewById(R.id.author_t);
         description_t=(EditText) findViewById(R.id.description_t);
         enter_Btn=(Button) findViewById(R.id.enter_Btn);
@@ -116,6 +125,9 @@ public class MainActivity extends AppCompatActivity {
         controlPlan.setVisibility(View.GONE);
         recodePlan.setVisibility(View.GONE);
         stopCameraBtn.setVisibility(View.GONE);
+        totalTime_t.setVisibility(View.GONE);
+        seekBar.setVisibility(View.GONE);
+        timePlan.setVisibility(View.GONE);
 
         imgBtn.setOnClickListener(clickBtn);
         movBtn.setOnClickListener(clickBtn);
@@ -144,6 +156,14 @@ public class MainActivity extends AppCompatActivity {
                         bufferIcon.setVisibility(View.GONE);
                         makeBtn.setVisibility(View.GONE);
                         cameraBtn.setVisibility(View.VISIBLE);
+                        break;
+                    case TIMECOUNT:
+                        currentTime+=1;
+                        currentTime_t.setText(mathFactory.ms2HMS(currentTime*1000));
+                        if(aPlayer!=null && aPlayer.isPlaying()){
+                            long _pec = currentTime * 100000 / totalTime;
+                            seekBar.setProgress((int) _pec);
+                        }
                         break;
                     default:
                         break;
@@ -252,24 +272,10 @@ public class MainActivity extends AppCompatActivity {
                     openCamera();
                     break;
                 case R.id.cameraBtn:
-                    cameraBtn.setVisibility(View.GONE);
-                    stopCameraBtn.setVisibility(View.VISIBLE);
-                    controlPlan.setVisibility(View.GONE);
-                    //录制
-//                    getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);//保持屏幕常亮
-                    isRecording = true;
-                    if(audioUri!=null) {
-                        playMusic(musicUrl);
-                    }
                     startRecode();
                     break;
                 case R.id.stopCameraBtn:
-                    stopCameraBtn.setVisibility(View.GONE);
-                    cameraBtn.setVisibility(View.VISIBLE);
-                    controlPlan.setVisibility(View.VISIBLE);
-                    isRecording = false;
                     stopRecode();
-                    makeBtn.setVisibility(View.VISIBLE);
                     break;
                 case R.id.imgBtn:
                     file_type=IMAGE_FILE;
@@ -305,7 +311,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                     break;
                 case R.id.skip_t:
-                    startActivity(new Intent(getApplication(),MainActivity.class));
                     titlePlan.setVisibility(View.GONE);
                     controlPlan.setVisibility(View.VISIBLE);
                     recodePlan.setVisibility(View.VISIBLE);
@@ -325,6 +330,15 @@ public class MainActivity extends AppCompatActivity {
      * 开始录制
      */
     private void startRecode(){
+        cameraBtn.setVisibility(View.GONE);
+        stopCameraBtn.setVisibility(View.VISIBLE);
+        controlPlan.setVisibility(View.GONE);
+        //录制
+//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);//保持屏幕常亮
+        if(audioUri!=null) {
+            playMusic(musicUrl);
+        }
+        timePlan.setVisibility(View.VISIBLE);
         try {
             Log.i("LOGCAT", "Start recording...");
             switchCameraBtn.setVisibility(View.GONE);
@@ -362,7 +376,6 @@ public class MainActivity extends AppCompatActivity {
 //                @Override
 //                public void onInfo(MediaRecorder mediaRecorder, int i, int i1) {
 //                    Log.d("LOGCAT", "RecordService got MediaRecorder onInfo callback with what: " + i + " extra: " + i1);
-//                    isRecording = false;
 //                }
 //            });
             mRecorder.prepare();
@@ -371,6 +384,7 @@ public class MainActivity extends AppCompatActivity {
             //监听文件的写入
             writeFileListener = new fileListener(videoFile.getPath(),this);
             writeFileListener.startWatching();
+            startPresTimer();
         }catch (IOException e){
         }
     }
@@ -379,6 +393,14 @@ public class MainActivity extends AppCompatActivity {
      * 停止录制
      */
     private void stopRecode(){
+        stopCameraBtn.setVisibility(View.GONE);
+        cameraBtn.setVisibility(View.VISIBLE);
+        controlPlan.setVisibility(View.VISIBLE);
+        makeBtn.setVisibility(View.VISIBLE);
+        stopPresTimer();
+        currentTime=0;
+        seekBar.setProgress(0);
+        timePlan.setVisibility(View.GONE);
         switchCameraBtn.setVisibility(View.VISIBLE);
         stopPlayer();
         // 设置该组件让屏幕不会自动关闭
@@ -468,6 +490,8 @@ public class MainActivity extends AppCompatActivity {
                         if (cursor != null) {
                         }else{
                             musicUrl=audioUri.getPath();
+                            seekBar.setVisibility(View.VISIBLE);
+                            totalTime_t.setVisibility(View.VISIBLE);
                             Log.d("LOGCAT","path:"+musicUrl);
                         }
                     }catch (Exception e){
@@ -539,8 +563,17 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onPrepared(MediaPlayer mp) {
                         // 装载完毕 开始播放流媒体
-                        Log.d("LOGCAT","play audioPlayer");
+                        totalTime=aPlayer.getDuration();
+                        totalTime_t.setText(mathFactory.ms2HMS(totalTime));
+                        Log.d("LOGCAT","audioPlayer totalTime:"+totalTime);
                         aPlayer.start();
+                    }
+                });
+                //音乐播放完毕结束录制
+                aPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    @Override
+                    public void onCompletion(MediaPlayer mediaPlayer) {
+                        stopRecode();
                     }
                 });
             }catch (Exception e){
@@ -635,6 +668,37 @@ public class MainActivity extends AppCompatActivity {
     public void fileClosed(){
         makeBtn.setVisibility(View.VISIBLE);
         writeFileListener.stopWatching();
+    }
+
+    /**
+     * 计时器的开始和关闭
+     */
+    private void startPresTimer(){
+        presTask = new TimerTask() {
+            @Override
+            public void run() {
+                // TODO Auto-generated method stub
+                if(mHandler!=null) {
+                    Message message = new Message();
+                    message.what = TIMECOUNT;
+                    mHandler.sendMessage(message);
+                }
+            }
+        };
+        if(presTimer==null){
+            presTimer=new Timer();
+        }
+        presTimer.schedule(presTask, 1000, 1000);
+    }
+    private void stopPresTimer(){
+        if(presTimer!=null) {
+            presTimer.cancel();
+            presTimer=null;
+        }
+        if(presTask!=null) {
+            presTask.cancel();
+            presTask=null;
+        }
     }
 
     @Override

@@ -40,6 +40,31 @@
             android:layout_height="match_parent" />
     </RelativeLayout>
     <LinearLayout
+        android:padding="5dp"
+        android:id="@+id/timePlan"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:text="00:00"
+            android:id="@+id/currentTime_t"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <SeekBar
+            android:id="@+id/seekBar"
+            android:layout_weight="1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:progress="0"
+            android:maxHeight="10dp"/>
+        <TextView
+            android:text="00:00"
+            android:id="@+id/totalTime_t"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+    <LinearLayout
         android:orientation="horizontal"
         android:background="@color/trasnsWhite"
         android:padding="4dp"
@@ -119,13 +144,15 @@
     </FrameLayout>
     <LinearLayout
         android:orientation="vertical"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
         android:id="@+id/titlePlan"
+        android:padding="4dp"
         android:background="@drawable/whitebg"
-        android:layout_margin="40dp"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="40dp"
+        android:layout_marginRight="40dp"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true">
         <TextView
             android:text="请输入视频标题及相关信息"
             android:layout_gravity="center"
