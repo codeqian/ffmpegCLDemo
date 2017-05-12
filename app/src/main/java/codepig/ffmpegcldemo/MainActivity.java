@@ -155,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
                     case 2:
                         bufferIcon.setVisibility(View.GONE);
                         makeBtn.setVisibility(View.GONE);
-                        cameraBtn.setVisibility(View.VISIBLE);
+                        recodePlan.setVisibility(View.VISIBLE);
                         break;
                     case TIMECOUNT:
                         currentTime+=1;
@@ -285,10 +285,14 @@ public class MainActivity extends AppCompatActivity {
                     file_type=MUSIC_FILE;
                     chooseFile();
                     break;
+                case R.id.movBtn:
+                    file_type=VIDEO_FILE;
+                    chooseFile();
+                    break;
                 case R.id.makeBtn:
                     //开始合并
                     makeVideo();
-                    cameraBtn.setVisibility(View.GONE);
+                    recodePlan.setVisibility(View.GONE);
                     break;
                 case R.id.enter_Btn:
                     videoInfo.vTitle=title_t.getText().toString();
@@ -341,6 +345,7 @@ public class MainActivity extends AppCompatActivity {
         timePlan.setVisibility(View.VISIBLE);
         try {
             Log.i("LOGCAT", "Start recording...");
+            currentTime=0;
             switchCameraBtn.setVisibility(View.GONE);
             // 创建保存录制视频的视频文件
             videoFile = new File(FileUtil.getPath() + "/"+recordFilename+".mp4");
@@ -398,7 +403,6 @@ public class MainActivity extends AppCompatActivity {
         controlPlan.setVisibility(View.VISIBLE);
         makeBtn.setVisibility(View.VISIBLE);
         stopPresTimer();
-        currentTime=0;
         seekBar.setProgress(0);
         timePlan.setVisibility(View.GONE);
         switchCameraBtn.setVisibility(View.VISIBLE);
@@ -422,15 +426,15 @@ public class MainActivity extends AppCompatActivity {
         intent.setAction(Intent.ACTION_GET_CONTENT);
         Log.d("LOGCAT", "file type:" + file_type);
         switch (file_type) {
-            case 1:
+            case IMAGE_FILE:
                 intent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 intent.setType("image/*");
                 break;
-            case 2:
+            case MUSIC_FILE:
                 intent.setData(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI);
                 intent.setType("audio/*");
                 break;
-            case 3:
+            case VIDEO_FILE:
                 intent.setData(MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
                 intent.setType("video/*");
                 break;
@@ -630,7 +634,7 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "少年，不加点什么吗？", Toast.LENGTH_SHORT).show();
             return;
         }
-        String[] commands= ffmpegCommandCentre.makeVideo(textMarkUrl,imageUrl,musicUrl,videoUrl,outputUrl);
+        String[] commands= ffmpegCommandCentre.makeVideo(textMarkUrl,imageUrl,musicUrl,videoUrl,outputUrl,currentTime);
         final String[] _commands=commands;
         Runnable compoundRun=new Runnable() {
             @Override

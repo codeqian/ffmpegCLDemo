@@ -15,24 +15,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/surfaceView"/>
-        <!--缓冲图标-->
-        <LinearLayout
-            android:id="@+id/bufferIcon"
-            android:layout_centerInParent="true"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-            <ProgressBar
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-            <TextView
-                android:id="@+id/infoText"
-                android:textColor="@android:color/white"
-                android:text="合成中，请等待。几分钟就压完了（吧）。"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-        </LinearLayout>
         <ImageView
             android:id="@+id/imgPreview"
             android:scaleType="fitXY"
@@ -79,9 +61,9 @@
             android:layout_width="70dp"
             android:layout_height="30dp"
             android:id="@+id/switchCameraBtn"
-            android:text="切换前后镜头"/>
+            android:text="切换镜头"/>
         <Button
-            android:text="选择相框图片"
+            android:text="选择图片"
             android:layout_margin="@dimen/item_margin_small"
             android:background="@drawable/btn"
             android:id="@+id/imgBtn"
@@ -89,7 +71,7 @@
             android:layout_width="70dp"
             android:layout_height="30dp" />
         <Button
-            android:text="选择动效视频"
+            android:text="选择视频"
             android:layout_margin="@dimen/item_margin_small"
             android:background="@drawable/btn"
             android:id="@+id/movBtn"
@@ -97,7 +79,7 @@
             android:layout_width="70dp"
             android:layout_height="30dp" />
         <Button
-            android:text="选择背景音乐"
+            android:text="选择音乐"
             android:layout_margin="@dimen/item_margin_small"
             android:background="@drawable/btn"
             android:id="@+id/musicBtn"
@@ -233,6 +215,24 @@
             android:id="@+id/skip_t"
             android:textColor="@android:color/darker_gray"
             android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+    <!--缓冲图标-->
+    <LinearLayout
+        android:id="@+id/bufferIcon"
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:id="@+id/infoText"
+            android:textColor="@android:color/white"
+            android:text="合成中，请等待。几分钟就压完了（吧）。"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
     </LinearLayout>

@@ -5,6 +5,7 @@ import android.util.Log;
 import java.util.ArrayList;
 
 import codepig.ffmpegcldemo.config.deviceInfo;
+import codepig.ffmpegcldemo.config.videoSetting;
 
 /**
  * 拼装ffmpeg命令行文本
@@ -82,7 +83,7 @@ public class ffmpegCommandCentre {
     /**
      * 合成
      */
-    public static String[] makeVideo(String textIimageUrl,String imageUrl,String musicUrl,String videoUrl,String outputUrl){
+    public static String[] makeVideo(String textIimageUrl,String imageUrl,String musicUrl,String videoUrl,String outputUrl,int _duration){
 //        Log.d("LOGCAT","add pic and music");
         ArrayList<String> _commands=new ArrayList<>();
         _commands.add("ffmpeg");
@@ -97,6 +98,10 @@ public class ffmpegCommandCentre {
                 _commands.add(imageUrl);//此处的图片地址换成带透明通道的视频就可以合成动态视频遮罩。
             }
             if(!textIimageUrl.equals("")){
+                _commands.add("-ss");
+                _commands.add("00:00:00");
+                _commands.add("-t");
+                _commands.add(""+videoSetting.titleDuration);
                 _commands.add("-i");
                 _commands.add(textIimageUrl);
             }
@@ -111,18 +116,26 @@ public class ffmpegCommandCentre {
         }
         //音乐
         if(!musicUrl.equals("")) {
+            //-ss和-t参数控制音频长度
+            _commands.add("-ss");
+            _commands.add("00:00:00");
+            _commands.add("-t");
+            _commands.add(""+_duration);
             _commands.add("-i");
             _commands.add(musicUrl);
+
         }
         //覆盖输出
         _commands.add("-y");
         //输出文件
         _commands.add(outputUrl);
         String[] commands = new String[_commands.size()];
+        String _pr="";
         for(int i=0;i<_commands.size();i++){
             commands[i]=_commands.get(i);
-            Log.d("LOGCAT","commands:"+commands[i]);
+            _pr+=commands[i];
         }
+        Log.d("LOGCAT","ffmpeg command:"+_pr);
         return commands;
     }
 }
