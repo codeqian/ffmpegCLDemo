@@ -15,6 +15,11 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/surfaceView"/>
+        <VideoView
+            android:id="@+id/videoPreview"
+            android:layout_centerInParent="true"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
         <ImageView
             android:id="@+id/imgPreview"
             android:scaleType="fitXY"
@@ -103,6 +108,15 @@
             android:layout_width="70dp"
             android:layout_height="30dp" />
     </LinearLayout>
+    <Button
+        android:layout_margin="4dp"
+        android:background="@drawable/btn"
+        android:text="再来一发"
+        android:id="@+id/newBtn"
+        android:textSize="10sp"
+        android:layout_alignParentBottom="true"
+        android:layout_width="70dp"
+        android:layout_height="30dp" />
     <FrameLayout
         android:background="@drawable/btncircle"
         android:id="@+id/recodePlan"
@@ -154,8 +168,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
             <EditText
-                android:maxLines="1"
-                android:text="这是一个测试视频"
+                android:text="测试视频abcdefg"
                 android:padding="5dp"
                 android:background="@color/gray"
                 android:id="@+id/title_t"
@@ -175,7 +188,7 @@
                 android:layout_height="wrap_content" />
             <EditText
                 android:maxLines="1"
-                android:text="qzd"
+                android:text="qzd 谁？"
                 android:padding="5dp"
                 android:background="@color/gray"
                 android:id="@+id/author_t"
@@ -195,7 +208,7 @@
                 android:layout_height="wrap_content" />
             <EditText
                 android:maxLines="1"
-                android:text="没什么好说的"
+                android:text="没什么好说的hg"
                 android:padding="5dp"
                 android:background="@color/gray"
                 android:id="@+id/description_t"

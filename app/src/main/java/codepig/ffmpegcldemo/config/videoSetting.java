@@ -5,5 +5,7 @@ package codepig.ffmpegcldemo.config;
  */
 
 public class videoSetting {
+    public static int titlePicWidth=200;
+    public static int titlePicHeight=100;
     public static int titleDuration=1;
 }

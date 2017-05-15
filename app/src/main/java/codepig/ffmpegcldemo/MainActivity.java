@@ -21,6 +21,7 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -29,9 +30,11 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.VideoView;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -50,15 +53,17 @@ public class MainActivity extends AppCompatActivity {
     private EditText title_t,author_t,description_t;
     private TextView skip_t,currentTime_t,totalTime_t;
     private SeekBar seekBar;
-    private Button cameraBtn,stopCameraBtn,imgBtn,movBtn,musicBtn,makeBtn,switchCameraBtn,enter_Btn,titleBtn;
+    private Button cameraBtn,stopCameraBtn,imgBtn,movBtn,musicBtn,makeBtn,switchCameraBtn,enter_Btn,titleBtn,newBtn;
     private LinearLayout titlePlan,controlPlan,bufferIcon,timePlan;
     private FrameLayout recodePlan;
     private ImageView imgPreview;
     private SurfaceView surfaceView;
+    private VideoView videoPreview;
     private MediaPlayer mPlayer,aPlayer;
     private Bitmap imageBitmap;
     private Handler mHandler;
     private SurfaceHolder sfHolder;
+    private SurfaceHolder vpHolder;
     private Uri imageUri=null;
     private Uri audioUri=null;
     private Uri videoUri=null;
@@ -86,6 +91,9 @@ public class MainActivity extends AppCompatActivity {
     private final int MUSIC_FILE=2;
     private final int VIDEO_FILE=3;
     private final int TIMECOUNT=4;
+    private final int ENCODEING=8;
+    private final int ENCODED=9;
+    private final int SETFRAME=10;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,6 +108,7 @@ public class MainActivity extends AppCompatActivity {
         cameraBtn=(Button) findViewById(R.id.cameraBtn);
         stopCameraBtn=(Button) findViewById(R.id.stopCameraBtn);
         switchCameraBtn=(Button) findViewById(R.id.switchCameraBtn);
+        newBtn=(Button) findViewById(R.id.newBtn);
         titleBtn=(Button) findViewById(R.id.titleBtn);
         titlePlan=(LinearLayout) findViewById(R.id.titlePlan);
         controlPlan=(LinearLayout) findViewById(R.id.controlPlan);
@@ -119,7 +128,9 @@ public class MainActivity extends AppCompatActivity {
         author_t=(EditText) findViewById(R.id.author_t);
         description_t=(EditText) findViewById(R.id.description_t);
         enter_Btn=(Button) findViewById(R.id.enter_Btn);
+        videoPreview = (VideoView) this.findViewById(R.id.videoPreview);
 
+        videoPreview.setVisibility(View.GONE);
         bufferIcon.setVisibility(View.GONE);
         makeBtn.setVisibility(View.GONE);
         controlPlan.setVisibility(View.GONE);
@@ -128,6 +139,7 @@ public class MainActivity extends AppCompatActivity {
         totalTime_t.setVisibility(View.GONE);
         seekBar.setVisibility(View.GONE);
         timePlan.setVisibility(View.GONE);
+        newBtn.setVisibility(View.GONE);
 
         imgBtn.setOnClickListener(clickBtn);
         movBtn.setOnClickListener(clickBtn);
@@ -139,23 +151,34 @@ public class MainActivity extends AppCompatActivity {
         enter_Btn.setOnClickListener(clickBtn);
         titleBtn.setOnClickListener(clickBtn);
         skip_t.setOnClickListener(clickBtn);
+        newBtn.setOnClickListener(clickBtn);
 
+        ViewGroup.LayoutParams lp = videoPreview.getLayoutParams();
+        lp.width =deviceInfo.screenWtdth;
+        lp.height =deviceInfo.screenHeight;
+        videoPreview.setLayoutParams(lp);
         //初始化播放器
         mPlayer=new MediaPlayer();
         mHandler = new Handler() {
             @Override
             public void handleMessage(Message msg) {//UI处理
                 switch (msg.what){
-                    case 0:
+                    case SETFRAME:
                         imgPreview.setImageBitmap(imageBitmap);
                         break;
-                    case 1:
+                    case ENCODEING:
                         bufferIcon.setVisibility(View.VISIBLE);
+                        controlPlan.setVisibility(View.GONE);
                         break;
-                    case 2:
+                    case ENCODED:
                         bufferIcon.setVisibility(View.GONE);
                         makeBtn.setVisibility(View.GONE);
-                        recodePlan.setVisibility(View.VISIBLE);
+                        newBtn.setVisibility(View.VISIBLE);
+                        recodePlan.setVisibility(View.GONE);
+                        controlPlan.setVisibility(View.GONE);
+                        imgPreview.setVisibility(View.GONE);
+                        //回放压好的文件
+                        playVideo(outputUrl);
                         break;
                     case TIMECOUNT:
                         currentTime+=1;
@@ -163,6 +186,11 @@ public class MainActivity extends AppCompatActivity {
                         if(aPlayer!=null && aPlayer.isPlaying()){
                             long _pec = currentTime * 100000 / totalTime;
                             seekBar.setProgress((int) _pec);
+                        }
+                        if(videoPreview!=null && videoPreview.isPlaying()){
+                            long _pec = currentTime * 100000 / totalTime;
+                            seekBar.setProgress((int) _pec);
+                            Log.d("LOGCAT","pec:"+currentTime+"_"+totalTime+"-"+_pec+"%");
                         }
                         break;
                     default:
@@ -286,8 +314,9 @@ public class MainActivity extends AppCompatActivity {
                     chooseFile();
                     break;
                 case R.id.movBtn:
-                    file_type=VIDEO_FILE;
-                    chooseFile();
+                    Toast.makeText(context, "暂未开放！", Toast.LENGTH_SHORT).show();
+//                    file_type=VIDEO_FILE;
+//                    chooseFile();
                     break;
                 case R.id.makeBtn:
                     //开始合并
@@ -302,13 +331,13 @@ public class MainActivity extends AppCompatActivity {
                     controlPlan.setVisibility(View.VISIBLE);
                     recodePlan.setVisibility(View.VISIBLE);
                     //先生成文字水印图片
-                    final String _title= videoInfo.vTitle;
-                    if(_title!=null &&! _title.equals("")) {
+                    final String[] _info={videoInfo.vTitle,videoInfo.author,videoInfo.description};
+                    if(videoInfo.vTitle!=null &&! videoInfo.vTitle.equals("")) {
                         textMarkUrl=FileUtil.getPath() + "/" + textMarkFilename + ".png";
                         Runnable bmpR=new Runnable() {
                             @Override
                             public void run() {
-                                bitmapFactory.writeImage(textMarkUrl, _title);
+                                bitmapFactory.writeImage(textMarkUrl,_info);
                             }
                         };
                         ThreadPoolUtils.execute(bmpR);
@@ -323,6 +352,14 @@ public class MainActivity extends AppCompatActivity {
                     titlePlan.setVisibility(View.VISIBLE);
                     controlPlan.setVisibility(View.GONE);
                     recodePlan.setVisibility(View.GONE);
+                    break;
+                case R.id.newBtn:
+                    controlPlan.setVisibility(View.VISIBLE);
+                    recodePlan.setVisibility(View.VISIBLE);
+                    imgPreview.setVisibility(View.VISIBLE);
+                    newBtn.setVisibility(View.GONE);
+                    stopPlayer();
+                    stopPresTimer();
                     break;
                 default:
                     break;
@@ -474,7 +511,7 @@ public class MainActivity extends AppCompatActivity {
                                     imageBitmap = imageLoader.returnBitMapLocal(imageUrl, 300, 200);
                                     if (imageBitmap != null){
                                         Message msg = new Message();
-                                        msg.what = 0;
+                                        msg.what = SETFRAME;
                                         mHandler.sendMessage(msg);
                                     }
                                 }
@@ -533,19 +570,59 @@ public class MainActivity extends AppCompatActivity {
         if(_url!=""){
             try {
                 Log.d("LOGCAT", "play:" + _url);
-                if(mPlayer==null){
-                    Log.d("LOGCAT", "new player");
-                    mPlayer=new MediaPlayer();
-                }else{
-                    Log.d("LOGCAT", "reset player");
-                    mPlayer.reset();
-                }
-                mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                //设置需要播放的视频
-                mPlayer.setDataSource(_url);
-                mPlayer.prepareAsync();
-                mPlayer.setOnBufferingUpdateListener(bufferingListener);
-                mPlayer.setOnPreparedListener(preparedListener);
+//                if(mPlayer==null){
+//                    Log.d("LOGCAT", "new player");
+//                    mPlayer=new MediaPlayer();
+//                }else{
+//                    Log.d("LOGCAT", "reset player");
+//                    mPlayer.reset();
+//                }
+//                mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+//                //设置需要播放的视频
+//                mPlayer.setDataSource(_url);
+//                mPlayer.prepareAsync();
+//                mPlayer.setOnBufferingUpdateListener(bufferingListener);
+//                mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+//                    @Override
+//                    public void onPrepared(MediaPlayer mediaPlayer) {
+//                        bufferIcon.setVisibility(View.GONE);
+//                        //播放
+//                        mPlayer.setDisplay(videoPreview.getHolder());
+//                        mPlayer.start();
+//                        mPlayer.setLooping(true);
+//                    }
+//                });
+//                mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+//                    @Override
+//                    public void onCompletion(MediaPlayer mediaPlayer) {
+//                    }
+//                });
+
+                videoPreview.setVisibility(View.VISIBLE);
+                videoPreview.setZOrderMediaOverlay(true);
+                Uri uri = Uri.parse(_url);
+                videoPreview.setVideoURI(uri);
+
+                videoPreview.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                    @Override
+                    public void onPrepared(MediaPlayer mediaPlayer) {
+                        totalTime=videoPreview.getDuration();
+                        totalTime_t.setText(mathFactory.ms2HMS(totalTime));
+                        timePlan.setVisibility(View.VISIBLE);
+                        seekBar.setVisibility(View.VISIBLE);
+                        totalTime_t.setVisibility(View.VISIBLE);
+                        videoPreview.start();
+                        startPresTimer();
+                    }
+                });
+                videoPreview.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    @Override
+                    public void onCompletion(MediaPlayer mediaPlayer) {
+                        currentTime=0;
+                        videoPreview.seekTo(0);
+                        videoPreview.start();
+                    }
+                });
             } catch (Exception e) {
                 // TODO: handle exception
             }
@@ -596,6 +673,9 @@ public class MainActivity extends AppCompatActivity {
      * 停止播放
      */
     private void stopPlayer(){
+        surfaceView.setZOrderMediaOverlay(true);
+        videoPreview.setVisibility(View.GONE);
+        timePlan.setVisibility(View.GONE);
         if(mPlayer!=null && mPlayer.isPlaying()){
             mPlayer.stop();
         }
@@ -610,19 +690,6 @@ public class MainActivity extends AppCompatActivity {
     MediaPlayer.OnBufferingUpdateListener bufferingListener=new MediaPlayer.OnBufferingUpdateListener() {
         @Override
         public void onBufferingUpdate(MediaPlayer mp, int percent) {
-        }
-    };
-
-    /**
-     * prepare监听
-     */
-    MediaPlayer.OnPreparedListener preparedListener=new MediaPlayer.OnPreparedListener(){
-        @Override
-        public void onPrepared(MediaPlayer mp)
-        {
-            bufferIcon.setVisibility(View.GONE);
-            //播放
-            mPlayer.start();
         }
     };
 
@@ -644,7 +711,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onStart() {
                         Log.d("FFmpegLog LOGCAT","FFmpeg 命令行开始执行了...");
                         Message msg = new Message();
-                        msg.what = 1;
+                        msg.what = ENCODEING;
                         mHandler.sendMessage(msg);
                     }
 
@@ -657,7 +724,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onEnd(int result) {
                         Log.d("FFmpegLog LOGCAT","FFmpeg 命令行执行完成...");
                         Message msg = new Message();
-                        msg.what = 2;
+                        msg.what = ENCODED;
                         mHandler.sendMessage(msg);
                     }
                 });
@@ -695,6 +762,8 @@ public class MainActivity extends AppCompatActivity {
         presTimer.schedule(presTask, 1000, 1000);
     }
     private void stopPresTimer(){
+        seekBar.setVisibility(View.GONE);
+        totalTime_t.setVisibility(View.GONE);
         if(presTimer!=null) {
             presTimer.cancel();
             presTimer=null;
