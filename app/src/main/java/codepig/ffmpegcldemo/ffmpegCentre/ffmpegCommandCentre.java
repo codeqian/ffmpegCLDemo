@@ -98,10 +98,6 @@ public class ffmpegCommandCentre {
             }
             //文字水印
             if(!textIimageUrl.equals("")){
-                _commands.add("-ss");
-                _commands.add("00:00:00");
-                _commands.add("-t");
-                _commands.add(""+videoSetting.titleDuration);
                 _commands.add("-i");
                 _commands.add(textIimageUrl);
             }
@@ -109,9 +105,9 @@ public class ffmpegCommandCentre {
             if(textIimageUrl.equals("")){
                 _commands.add("[1:v]scale=" + deviceInfo.screenWtdth + ":" + deviceInfo.screenHeight + "[s];[0:v][s]overlay=0:0");
             }else if(imageUrl.equals("")) {
-                _commands.add("overlay=(main_w-overlay_w)/2:(main_h-overlay_h)/2");
+                _commands.add("overlay=x='if(lte(t,"+videoSetting.titleDuration+"),(main_w-overlay_w)/2,NAN )':(main_h-overlay_h)/2");
             }else{
-                _commands.add("[1:v]scale=" + deviceInfo.screenWtdth + ":" + deviceInfo.screenHeight + "[img1];[2:v]scale=" + videoSetting.titlePicWidth + ":" + videoSetting.titlePicHeight + "[img2];[0:v][img1]overlay=0:0[bkg];[bkg][img2]overlay=(main_w-overlay_w)/2:(main_h-overlay_h)/2");
+                _commands.add("[1:v]scale=" + deviceInfo.screenWtdth + ":" + deviceInfo.screenHeight + "[img1];[2:v]scale=" + videoSetting.titlePicWidth + ":" + videoSetting.titlePicHeight + "[img2];[0:v][img1]overlay=0:0[bkg];[bkg][img2]overlay=x='if(lte(t,"+videoSetting.titleDuration+"),(main_w-overlay_w)/2,NAN )':(main_h-overlay_h)/2");
             }
         }
         //音乐
@@ -123,7 +119,6 @@ public class ffmpegCommandCentre {
             _commands.add(""+_duration);
             _commands.add("-i");
             _commands.add(musicUrl);
-
         }
         //覆盖输出
         _commands.add("-y");
