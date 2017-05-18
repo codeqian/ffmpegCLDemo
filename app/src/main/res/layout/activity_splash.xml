@@ -8,6 +8,7 @@
     <TextView
         android:gravity="center"
         android:text="MAKE\nSOMETHING\nAND\nDON'T\nPANIC"
+        android:id="@+id/title_t"
         android:textSize="40sp"
         android:textColor="@color/orange"
         android:layout_width="wrap_content"

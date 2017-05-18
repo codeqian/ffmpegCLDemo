@@ -31,6 +31,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <stdint.h>
+#include "logjam.h"
 
 #if HAVE_IO_H
 #include <io.h>
@@ -581,6 +582,17 @@ static void ffmpeg_cleanup(int ret)
     }
     term_exit();
     ffmpeg_exited = 1;
+
+    filtergraphs = NULL;
+    nb_filtergraphs = 0;
+    output_files = NULL;
+    nb_output_files = 0;
+    output_streams = NULL;
+    nb_output_streams = 0;
+    input_files = NULL;
+    nb_input_files = 0;
+    input_streams = NULL;
+    nb_input_streams = 0;
 }
 
 void remove_avoptions(AVDictionary **a, AVDictionary *b)
@@ -4328,5 +4340,6 @@ int run(int argc, char **argv)
         exit_program(69);
 
     exit_program(received_nb_signals ? 255 : main_return_code);
+    ffmpeg_cleanup(0);
     return main_return_code;
 }

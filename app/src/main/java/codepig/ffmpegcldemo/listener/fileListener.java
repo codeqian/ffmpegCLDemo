@@ -42,6 +42,7 @@ public class fileListener extends FileObserver {
                 break;
             case android.os.FileObserver.ATTRIB:
                 //未明操作
+                Log.d("LOGCAT","fileListener: file ATTRIB");
                 break;
             case android.os.FileObserver.CLOSE_NOWRITE:
                 //没有编辑文件，关闭

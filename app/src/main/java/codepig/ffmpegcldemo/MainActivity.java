@@ -62,7 +62,6 @@ public class MainActivity extends AppCompatActivity {
     private Bitmap imageBitmap;
     private Handler mHandler;
     private SurfaceHolder sfHolder;
-    private SurfaceHolder vpHolder;
     private Uri imageUri=null;
     private Uri audioUri=null;
     private Uri videoUri=null;
@@ -131,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
 
         videoPreview.setVisibility(View.GONE);
         bufferIcon.setVisibility(View.GONE);
-        makeBtn.setVisibility(View.GONE);
+//        makeBtn.setVisibility(View.GONE);
         controlPlan.setVisibility(View.GONE);
         recodePlan.setVisibility(View.GONE);
         stopCameraBtn.setVisibility(View.GONE);
@@ -157,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
         lp.height =deviceInfo.screenHeight;
         videoPreview.setLayoutParams(lp);
         //初始化播放器
-        mPlayer=new MediaPlayer();
+//        mPlayer=new MediaPlayer();
         mHandler = new Handler() {
             @Override
             public void handleMessage(Message msg) {//UI处理
@@ -171,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case ENCODED:
                         bufferIcon.setVisibility(View.GONE);
-                        makeBtn.setVisibility(View.GONE);
+//                        makeBtn.setVisibility(View.GONE);
                         newBtn.setVisibility(View.VISIBLE);
                         recodePlan.setVisibility(View.GONE);
                         controlPlan.setVisibility(View.GONE);
@@ -189,8 +188,8 @@ public class MainActivity extends AppCompatActivity {
                         if(videoPreview!=null && videoPreview.isPlaying()){
                             long _pec = currentTime * 100000 / totalTime;
                             seekBar.setProgress((int) _pec);
-                            Log.d("LOGCAT","pec:"+currentTime+"_"+totalTime+"-"+_pec+"%");
                         }
+//                        Log.d("LOGCAT","fileSize:"+videoFile.length());
                         break;
                     default:
                         break;
@@ -299,6 +298,7 @@ public class MainActivity extends AppCompatActivity {
                     openCamera();
                     break;
                 case R.id.cameraBtn:
+                    stopPlayer();
                     startRecode();
                     break;
                 case R.id.stopCameraBtn:
@@ -313,9 +313,9 @@ public class MainActivity extends AppCompatActivity {
                     chooseFile();
                     break;
                 case R.id.movBtn:
-                    Toast.makeText(context, "暂未开放！", Toast.LENGTH_SHORT).show();
-//                    file_type=VIDEO_FILE;
-//                    chooseFile();
+//                    Toast.makeText(context, "暂未开放！", Toast.LENGTH_SHORT).show();
+                    file_type=VIDEO_FILE;
+                    chooseFile();
                     break;
                 case R.id.makeBtn:
                     //开始合并
@@ -370,6 +370,12 @@ public class MainActivity extends AppCompatActivity {
      * 开始录制
      */
     private void startRecode(){
+        // 创建保存录制视频的视频文件
+        videoFile = new File(FileUtil.getPath() + "/"+recordFilename+".mp4");
+        videoUrl=FileUtil.getPath() + "/"+recordFilename+".mp4";
+        if(videoFile!=null && videoFile.exists()){
+            videoFile.delete();//录制前先删除原文件，不然文件大小不会变。
+        }
         cameraBtn.setVisibility(View.GONE);
         stopCameraBtn.setVisibility(View.VISIBLE);
         controlPlan.setVisibility(View.GONE);
@@ -383,9 +389,6 @@ public class MainActivity extends AppCompatActivity {
             Log.i("LOGCAT", "Start recording...");
             currentTime=0;
             switchCameraBtn.setVisibility(View.GONE);
-            // 创建保存录制视频的视频文件
-            videoFile = new File(FileUtil.getPath() + "/"+recordFilename+".mp4");
-            videoUrl=FileUtil.getPath() + "/"+recordFilename+".mp4";
             camera.unlock();
             // 设置该组件让屏幕不会自动关闭
             sfHolder.setKeepScreenOn(true);
@@ -451,6 +454,9 @@ public class MainActivity extends AppCompatActivity {
         // 释放资源
         mRecorder.release();
         mRecorder = null;
+        //回放刚刚录制的视频
+//        playVideo(videoUrl);
+//        waitForWirtenCompleted(videoFile);
     }
 
     /**
@@ -491,6 +497,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.d("LOGCAT", "uri path:"+imageUri.getPath()+"   "+imageUri.toString());
                         String[] pojo = {MediaStore.Images.Media.DATA};
                         Cursor cursor = getContentResolver().query(imageUri, pojo, null, null, null);
+                        imgPreview.setVisibility(View.VISIBLE);
                         if (cursor != null) {
                             /*这部分代码在ACTION_GET_CONTENT模式下为空，在ACTION_PICK模式下可以得到具体地址
                             int colunm_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
@@ -546,9 +553,12 @@ public class MainActivity extends AppCompatActivity {
                         Cursor cursor = getContentResolver().query(videoUri, pojo, null, null, null);
                         if (cursor != null) {
                         }else{
-                            videoUrl=videoUri.getPath();
+                            imageUrl=videoUri.getPath();//这里暂时图片相框和视频特效只能两选一
                             Log.d("LOGCAT","path:"+videoUrl);
-                            playVideo(videoUrl);
+                            imgPreview.setVisibility(View.GONE);
+                            //暂时无法播放
+//                            playVideo(videoUrl);
+                            Toast.makeText(this, "暂时无法预览，但支持合成", Toast.LENGTH_SHORT).show();
                         }
                     }catch (Exception e){
                         Log.d("LOGCAT",e.toString());
@@ -601,7 +611,7 @@ public class MainActivity extends AppCompatActivity {
                 videoPreview.setZOrderMediaOverlay(true);
                 Uri uri = Uri.parse(_url);
                 videoPreview.setVideoURI(uri);
-
+                currentTime=0;
                 videoPreview.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                     @Override
                     public void onPrepared(MediaPlayer mediaPlayer) {
@@ -675,11 +685,14 @@ public class MainActivity extends AppCompatActivity {
         surfaceView.setZOrderMediaOverlay(true);
         videoPreview.setVisibility(View.GONE);
         timePlan.setVisibility(View.GONE);
-        if(mPlayer!=null && mPlayer.isPlaying()){
-            mPlayer.stop();
-        }
+//        videoPreview.stopPlayback();
+//        if(mPlayer!=null && mPlayer.isPlaying()){
+//            mPlayer.stop();
+//        }
         if(aPlayer!=null && aPlayer.isPlaying()){
             aPlayer.stop();
+            aPlayer.release();
+            aPlayer=null;
         }
     }
 
@@ -700,6 +713,7 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "少年，不加点什么吗？", Toast.LENGTH_SHORT).show();
             return;
         }
+//        String[] commands= ffmpegCommandCentre.addTextMark(textMarkUrl,videoUrl,outputUrl);
         String[] commands= ffmpegCommandCentre.makeVideo(textMarkUrl,imageUrl,musicUrl,videoUrl,outputUrl,currentTime);
         final String[] _commands=commands;
         Runnable compoundRun=new Runnable() {
@@ -738,6 +752,24 @@ public class MainActivity extends AppCompatActivity {
     public void fileClosed(){
         makeBtn.setVisibility(View.VISIBLE);
         writeFileListener.stopWatching();
+    }
+
+    /**
+     * 监听文件大小
+     */
+    private void waitForWirtenCompleted(File file) {
+        if (!file.exists())
+            return;
+        long old_length;
+        do {
+            old_length = file.length();
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            Log.d("LOGCAT", "filesize:"+old_length + " " + file.length());
+        } while (old_length != file.length());
     }
 
     /**

@@ -113,15 +113,20 @@ public class ffmpegCommandCentre {
         //音乐
         if(!musicUrl.equals("")) {
             //-ss和-t参数控制音频长度
-            _commands.add("-ss");
-            _commands.add("00:00:00");
-            _commands.add("-t");
-            _commands.add(""+_duration);
+//            _commands.add("-ss");
+//            _commands.add("00:00:00");
+//            _commands.add("-t");
+//            _commands.add(""+_duration);
             _commands.add("-i");
             _commands.add(musicUrl);
         }
         //覆盖输出
-        _commands.add("-y");
+//        _commands.add("-y");
+        //时间参数，没有的话如果视频短于音频则会在视频最后一帧停住继续合成直到音频结束。
+        _commands.add("-ss");
+        _commands.add("00:00:00");
+        _commands.add("-t");
+        _commands.add(""+_duration);
         //输出文件
         _commands.add(outputUrl);
         String[] commands = new String[_commands.size()];
@@ -130,7 +135,11 @@ public class ffmpegCommandCentre {
             commands[i]=_commands.get(i);
             _pr+=commands[i];
         }
-        Log.d("LOGCAT","ffmpeg command:"+_pr);
+        Log.d("LOGCAT","ffmpeg command:"+_pr+commands.length);
         return commands;
+    }
+
+    public static void reset(){
+        //
     }
 }

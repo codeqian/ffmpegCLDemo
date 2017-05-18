@@ -169,6 +169,7 @@
                 android:layout_height="wrap_content" />
             <EditText
                 android:text="测试视频abcdefg"
+                android:maxLines="1"
                 android:padding="5dp"
                 android:background="@color/gray"
                 android:id="@+id/title_t"

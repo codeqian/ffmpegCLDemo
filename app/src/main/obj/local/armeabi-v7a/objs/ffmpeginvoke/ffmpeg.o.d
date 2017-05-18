@@ -1,5 +1,5 @@
 F:/Git/ffmpegCLDemo/app/src/main/obj/local/armeabi-v7a/objs/ffmpeginvoke/ffmpeg.o: \
-  ffmpeg.c F:/demo/ffmpeg-3.0\config.h \
+  ffmpeg.c F:/demo/ffmpeg-3.0\config.h logjam.h \
   F:/demo/ffmpeg-3.0\libavformat/avformat.h \
   F:/demo/ffmpeg-3.0\libavcodec/avcodec.h \
   F:/demo/ffmpeg-3.0\libavutil/samplefmt.h \
@@ -57,6 +57,8 @@ F:/Git/ffmpegCLDemo/app/src/main/obj/local/armeabi-v7a/objs/ffmpeginvoke/ffmpeg.
   F:/demo/ffmpeg-3.0\libavutil/avassert.h
 
 F:/demo/ffmpeg-3.0\config.h:
+
+logjam.h:
 
 F:/demo/ffmpeg-3.0\libavformat/avformat.h:
 
