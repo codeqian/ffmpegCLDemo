@@ -12,9 +12,11 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -130,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
 
         videoPreview.setVisibility(View.GONE);
         bufferIcon.setVisibility(View.GONE);
-//        makeBtn.setVisibility(View.GONE);
+        makeBtn.setVisibility(View.GONE);
         controlPlan.setVisibility(View.GONE);
         recodePlan.setVisibility(View.GONE);
         stopCameraBtn.setVisibility(View.GONE);
@@ -170,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case ENCODED:
                         bufferIcon.setVisibility(View.GONE);
-//                        makeBtn.setVisibility(View.GONE);
+                        makeBtn.setVisibility(View.GONE);
                         newBtn.setVisibility(View.VISIBLE);
                         recodePlan.setVisibility(View.GONE);
                         controlPlan.setVisibility(View.GONE);
@@ -463,25 +465,29 @@ public class MainActivity extends AppCompatActivity {
      * 打开文件
      */
     private void chooseFile(){
+        if(Build.VERSION.SDK_INT >= 24){//7.0
+        }else if(Build.VERSION.SDK_INT >= 19){//4.4
+        }
         Intent intent = new Intent();
-        //使用ACTION_PICK时google原生5.1系统音频选择会报错，使用ACTION_GET_CONTENT时小米系统获得的是空指针
         intent.setAction(Intent.ACTION_GET_CONTENT);
         Log.d("LOGCAT", "file type:" + file_type);
         switch (file_type) {
             case IMAGE_FILE:
-                intent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+//                intent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 intent.setType("image/*");
                 break;
             case MUSIC_FILE:
-                intent.setData(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI);
+//                intent.setData(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI);
                 intent.setType("audio/*");
                 break;
             case VIDEO_FILE:
-                intent.setData(MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
+//                intent.setData(MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
                 intent.setType("video/*");
                 break;
         }
-        startActivityForResult(intent, 0x1);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        startActivityForResult(Intent.createChooser(intent, "Select a File"), 0x1);
+//        startActivityForResult(intent, 0x1);
     }
 
     /**
@@ -491,26 +497,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 0x1 && resultCode == Activity.RESULT_OK && data!=null) {
             switch (file_type){
-                case IMAGE_FILE://不同机型系统，得到的fileUri.getPath()值不同，所以以不同的方式获取地址
+                case IMAGE_FILE:
                     try{
                         imageUri = data.getData();
-                        Log.d("LOGCAT", "uri path:"+imageUri.getPath()+"   "+imageUri.toString());
-                        String[] pojo = {MediaStore.Images.Media.DATA};
-                        Cursor cursor = getContentResolver().query(imageUri, pojo, null, null, null);
-                        imgPreview.setVisibility(View.VISIBLE);
-                        if (cursor != null) {
-                            /*这部分代码在ACTION_GET_CONTENT模式下为空，在ACTION_PICK模式下可以得到具体地址
-                            int colunm_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-                            cursor.moveToFirst();
-                            imageUrl = cursor.getString(colunm_index);
-                            cursor.close();
-                            //以上代码获取图片路径
-                            Log.d("LOGCAT","path:"+imageUrl);
-                            */
-                            imgPreview.setImageURI(imageUri);
-                        }else{
-                            imageUrl=imageUri.getPath();
-                            Log.d("LOGCAT","path:"+imageUrl);
+                        Log.i("LOGCAT", "uri path:"+imageUri.getPath()+"   "+imageUri.toString());
+
+                        imageUrl=FileUtil.getPath(this,imageUri);
+                        if(!imageUrl.equals("")) {
+                            imgPreview.setVisibility(View.VISIBLE);
                             Runnable bmpR=new Runnable() {
                                 @Override
                                 public void run() {
@@ -525,43 +519,36 @@ public class MainActivity extends AppCompatActivity {
                             ThreadPoolUtils.execute(bmpR);
                         }
                     }catch (Exception e){
-                        Log.d("LOGCAT",e.toString());
+                        Log.i("LOGCAT",e.toString());
                     }
                     break;
                 case MUSIC_FILE:
                     try{
                         audioUri = data.getData();
-                        Log.d("LOGCAT", "uri path:"+audioUri.getPath()+"   "+audioUri.toString());
-                        String[] pojo = {MediaStore.Audio.Media.DATA};
-                        Cursor cursor = getContentResolver().query(audioUri, pojo, null, null, null);
-                        if (cursor != null) {
-                        }else{
-                            musicUrl=audioUri.getPath();
+                        musicUrl=FileUtil.getPath(this,audioUri);
+                        if(!musicUrl.equals("")) {
                             seekBar.setVisibility(View.VISIBLE);
                             totalTime_t.setVisibility(View.VISIBLE);
-                            Log.d("LOGCAT","path:"+musicUrl);
+                            Log.i("LOGCAT", "path:" + musicUrl);
                         }
                     }catch (Exception e){
-                        Log.d("LOGCAT",e.toString());
+                        Log.i("LOGCAT",e.toString());
                     }
                     break;
                 case VIDEO_FILE:
                     try{
                         videoUri = data.getData();
-                        Log.d("LOGCAT", "uri path:"+videoUri.getPath()+"   "+videoUri.toString());
-                        String[] pojo = {MediaStore.Video.Media.DATA};
-                        Cursor cursor = getContentResolver().query(videoUri, pojo, null, null, null);
-                        if (cursor != null) {
-                        }else{
-                            imageUrl=videoUri.getPath();//这里暂时图片相框和视频特效只能两选一
-                            Log.d("LOGCAT","path:"+videoUrl);
-                            imgPreview.setVisibility(View.GONE);
+                        Log.i("LOGCAT", "uri path:"+videoUri.getPath()+"   "+videoUri.toString());
+                        imageUrl=FileUtil.getPath(this,videoUri);//暂时视频背景和图片背景只能2选1，所以这里赋值给imageUrl
+                        if(!imageUrl.equals("")) {
+                            Log.i("LOGCAT", "path:" + imageUrl);
                             //暂时无法播放
 //                            playVideo(videoUrl);
-                            Toast.makeText(this, "暂时无法预览，但支持合成", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "暂时无法预览，但支持合成", Toast.LENGTH_LONG).show();
+                            imgPreview.setVisibility(View.GONE);
                         }
                     }catch (Exception e){
-                        Log.d("LOGCAT",e.toString());
+                        Log.i("LOGCAT",e.toString());
                     }
                     break;
                 default:
