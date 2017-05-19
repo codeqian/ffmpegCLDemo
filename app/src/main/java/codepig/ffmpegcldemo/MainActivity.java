@@ -19,6 +19,7 @@ import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -80,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
     private File videoFile;// 录制的视频文件
     private MediaRecorder mRecorder;
     private boolean hasCamera=false;
-    private int camIdx=Camera.CameraInfo.CAMERA_FACING_FRONT;
+    private int camIdx=Camera.CameraInfo.CAMERA_FACING_BACK;
     private fileListener writeFileListener;
     private int currentTime=0;//当前已录制时间
     private int totalTime=0;//音乐文件总时间
@@ -152,6 +153,10 @@ public class MainActivity extends AppCompatActivity {
         titleBtn.setOnClickListener(clickBtn);
         skip_t.setOnClickListener(clickBtn);
         newBtn.setOnClickListener(clickBtn);
+
+        DisplayMetrics dm =getResources().getDisplayMetrics();
+        deviceInfo.screenWtdth = dm.widthPixels;
+        deviceInfo.screenHeight = dm.heightPixels;
 
         ViewGroup.LayoutParams lp = videoPreview.getLayoutParams();
         lp.width =deviceInfo.screenWtdth;
@@ -544,7 +549,7 @@ public class MainActivity extends AppCompatActivity {
                             Log.i("LOGCAT", "path:" + imageUrl);
                             //暂时无法播放
 //                            playVideo(videoUrl);
-                            Toast.makeText(this, "暂时无法预览，但支持合成", Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, "暂时无法预览，但支持合成", Toast.LENGTH_SHORT).show();
                             imgPreview.setVisibility(View.GONE);
                         }
                     }catch (Exception e){

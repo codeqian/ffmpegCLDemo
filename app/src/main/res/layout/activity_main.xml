@@ -150,7 +150,7 @@
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true">
         <TextView
-            android:text="请输入视频标题及相关信息"
+            android:text="输入视频信息，显示三秒片头字幕"
             android:layout_gravity="center"
             android:layout_margin="5dp"
             android:textColor="@android:color/darker_gray"

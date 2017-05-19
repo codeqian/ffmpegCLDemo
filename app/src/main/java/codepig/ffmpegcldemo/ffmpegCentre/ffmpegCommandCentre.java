@@ -93,6 +93,8 @@ public class ffmpegCommandCentre {
         if(!textIimageUrl.equals("") || !imageUrl.equals("")){
             //图片水印
             if(!imageUrl.equals("")) {
+                _commands.add("-ignore_loop");
+                _commands.add("0");
                 _commands.add("-i");
                 _commands.add(imageUrl);//此处的图片地址换成带透明通道的视频就可以合成动态视频遮罩。
             }
