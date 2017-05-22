@@ -7,4 +7,8 @@ package codepig.ffmpegcldemo.config;
 public class deviceInfo {
     public static int screenWtdth=1280;
     public static int screenHeight=720;
+    public static int cameraWidth=640;
+    public static int cameraHeight=480;
+    public static int recodeWidth=640;
+    public static int recodeHeight=480;
 }

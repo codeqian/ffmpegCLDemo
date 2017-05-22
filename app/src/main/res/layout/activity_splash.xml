@@ -16,7 +16,7 @@
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true" />
     <TextView
-        android:text="VIDEO MAKER DEMO v0.1"
+        android:text="VIDEO MAKER DEMO v0.11"
         android:textSize="16sp"
         android:textColor="@color/gray"
         android:layout_width="wrap_content"

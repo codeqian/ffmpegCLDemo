@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
@@ -15,8 +14,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
-import android.provider.MediaStore;
-import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -37,6 +34,8 @@ import android.widget.VideoView;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -48,6 +47,7 @@ import codepig.ffmpegcldemo.utils.FileUtil;
 import codepig.ffmpegcldemo.utils.ThreadPoolUtils;
 import codepig.ffmpegcldemo.utils.bitmapFactory;
 import codepig.ffmpegcldemo.utils.mathFactory;
+import codepig.ffmpegcldemo.utils.videoUtils;
 import codepig.ffmpegcldemo.values.videoInfo;
 
 public class MainActivity extends AppCompatActivity {
@@ -279,10 +279,35 @@ public class MainActivity extends AppCompatActivity {
         try {
             camera = Camera.open(camIdx);
             Parameters cP=camera.getParameters();
-            cP.setPreviewSize(deviceInfo.screenWtdth,deviceInfo.screenHeight);
-            camera.setParameters(cP);
+//            cP.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);//连续对焦
+//            camera.cancelAutoFocus();//连续对焦时必须加这个
+//            camera.setParameters(cP);
+            videoUtils.prviewSizeList = cP.getSupportedPreviewSizes();
+            videoUtils.videoSizeList = cP.getSupportedVideoSizes();
+            //降序排列
+            Collections.sort(videoUtils.prviewSizeList, new Comparator<Camera.Size>() {
+                @Override
+                public int compare(Camera.Size lhs, Camera.Size rhs) {
+                    if (lhs.width > rhs.width) {
+                        return -1;
+                    } else if (lhs.width == rhs.width) {
+                        return 0;
+                    } else {
+                        return 1;
+                    }
+                }
+            });
+            deviceInfo.cameraWidth=videoUtils.prviewSizeList.get(1).width;
+            deviceInfo.cameraHeight=videoUtils.prviewSizeList.get(1).height;
+            cP.setPreviewSize(deviceInfo.cameraWidth,deviceInfo.cameraHeight);
+            Log.i("LOGCAT","camera:"+deviceInfo.cameraWidth+"-"+deviceInfo.cameraHeight);
             camera.setPreviewDisplay(sfHolder);//通过SurfaceView显示取景画面
             camera.startPreview(); //开始预览
+            //获得最接近预览分辨率的视频分辨率支持值
+            int recodeSizeIndex=videoUtils.bestVideoSize(deviceInfo.cameraWidth);
+            deviceInfo.recodeWidth=videoUtils.videoSizeList.get(recodeSizeIndex).width;
+            deviceInfo.recodeHeight=videoUtils.videoSizeList.get(recodeSizeIndex).height;
+            Log.i("LOGCAT","recode:"+deviceInfo.recodeWidth+"-"+deviceInfo.recodeHeight);
         } catch (IOException e) {
             Log.d("LOGCAT", "IOException:"+e.toString());
         }
@@ -415,10 +440,12 @@ public class MainActivity extends AppCompatActivity {
 //            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
             // 设置图像编码的格式
             mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-            mRecorder.setVideoEncodingBitRate(5*deviceInfo.screenWtdth*deviceInfo.screenHeight);
-            mRecorder.setVideoSize(deviceInfo.screenWtdth, deviceInfo.screenHeight);
+            //设置分辨率
+            mRecorder.setVideoSize(deviceInfo.recodeWidth,deviceInfo.recodeHeight);
+            //码率
+            mRecorder.setVideoEncodingBitRate(5*deviceInfo.recodeWidth*deviceInfo.recodeHeight);
             // 每秒24帧
-            mRecorder.setVideoFrameRate(24);
+//            mRecorder.setVideoFrameRate(24);
             mRecorder.setOutputFile(videoFile.getAbsolutePath());
             // 指定使用SurfaceView来预览视频
             mRecorder.setPreviewDisplay(sfHolder.getSurface());
