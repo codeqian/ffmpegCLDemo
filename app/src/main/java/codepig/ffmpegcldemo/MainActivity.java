@@ -208,11 +208,6 @@ public class MainActivity extends AppCompatActivity {
         outputUrl= FileUtil.getPath() + "/"+outputFilename+".mp4";
         //检测是否存在摄像头
         hasCamera=checkCameraHardware(context);
-
-        //隐藏系统导航栏(android4.1及以上)
-//        View decorView = getWindow().getDecorView();
-//        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN;
-//        decorView.setSystemUiVisibility(uiOptions);
     }
 
     /**
@@ -279,9 +274,9 @@ public class MainActivity extends AppCompatActivity {
         try {
             camera = Camera.open(camIdx);
             Parameters cP=camera.getParameters();
-//            cP.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);//连续对焦
+            cP.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);//连续对焦
 //            camera.cancelAutoFocus();//连续对焦时必须加这个
-//            camera.setParameters(cP);
+            camera.setParameters(cP);
             videoUtils.prviewSizeList = cP.getSupportedPreviewSizes();
             videoUtils.videoSizeList = cP.getSupportedVideoSizes();
             //降序排列
@@ -490,7 +485,6 @@ public class MainActivity extends AppCompatActivity {
         mRecorder = null;
         //回放刚刚录制的视频
 //        playVideo(videoUrl);
-//        waitForWirtenCompleted(videoFile);
     }
 
     /**
@@ -519,7 +513,6 @@ public class MainActivity extends AppCompatActivity {
         }
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         startActivityForResult(Intent.createChooser(intent, "Select a File"), 0x1);
-//        startActivityForResult(intent, 0x1);
     }
 
     /**
@@ -598,34 +591,6 @@ public class MainActivity extends AppCompatActivity {
         if(_url!=""){
             try {
                 Log.d("LOGCAT", "play:" + _url);
-//                if(mPlayer==null){
-//                    Log.d("LOGCAT", "new player");
-//                    mPlayer=new MediaPlayer();
-//                }else{
-//                    Log.d("LOGCAT", "reset player");
-//                    mPlayer.reset();
-//                }
-//                mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-//                //设置需要播放的视频
-//                mPlayer.setDataSource(_url);
-//                mPlayer.prepareAsync();
-//                mPlayer.setOnBufferingUpdateListener(bufferingListener);
-//                mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-//                    @Override
-//                    public void onPrepared(MediaPlayer mediaPlayer) {
-//                        bufferIcon.setVisibility(View.GONE);
-//                        //播放
-//                        mPlayer.setDisplay(videoPreview.getHolder());
-//                        mPlayer.start();
-//                        mPlayer.setLooping(true);
-//                    }
-//                });
-//                mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-//                    @Override
-//                    public void onCompletion(MediaPlayer mediaPlayer) {
-//                    }
-//                });
-
                 videoPreview.setVisibility(View.VISIBLE);
                 videoPreview.setZOrderMediaOverlay(true);
                 Uri uri = Uri.parse(_url);
@@ -704,10 +669,6 @@ public class MainActivity extends AppCompatActivity {
         surfaceView.setZOrderMediaOverlay(true);
         videoPreview.setVisibility(View.GONE);
         timePlan.setVisibility(View.GONE);
-//        videoPreview.stopPlayback();
-//        if(mPlayer!=null && mPlayer.isPlaying()){
-//            mPlayer.stop();
-//        }
         if(aPlayer!=null && aPlayer.isPlaying()){
             aPlayer.stop();
             aPlayer.release();
