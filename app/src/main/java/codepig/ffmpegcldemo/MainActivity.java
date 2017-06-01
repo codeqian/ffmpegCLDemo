@@ -155,11 +155,11 @@ public class MainActivity extends AppCompatActivity {
         newBtn.setOnClickListener(clickBtn);
 
         DisplayMetrics dm =getResources().getDisplayMetrics();
-        deviceInfo.screenWtdth = dm.widthPixels;
+        deviceInfo.screenWidth = dm.widthPixels;
         deviceInfo.screenHeight = dm.heightPixels;
 
         ViewGroup.LayoutParams lp = videoPreview.getLayoutParams();
-        lp.width =deviceInfo.screenWtdth;
+        lp.width =deviceInfo.screenWidth;
         lp.height =deviceInfo.screenHeight;
         videoPreview.setLayoutParams(lp);
         //初始化播放器
@@ -217,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
         surfaceView = (SurfaceView) this.findViewById(R.id.surfaceView);
         sfHolder=surfaceView.getHolder();
         // 设置分辨率
-        sfHolder.setFixedSize(deviceInfo.screenWtdth, deviceInfo.screenHeight);
+        sfHolder.setFixedSize(deviceInfo.screenWidth, deviceInfo.screenHeight);
         sfHolder.addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceDestroyed(SurfaceHolder holder) {
