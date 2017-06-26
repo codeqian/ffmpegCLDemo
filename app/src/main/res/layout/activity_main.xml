@@ -25,12 +25,10 @@
             android:scaleType="fitXY"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
-        <com.felipecsl.gifimageview.library.GifImageView
-            android:id="@+id/gifImageView"
-            android:layout_gravity="center"
-            android:scaleType="fitCenter"
+        <pl.droidsonroids.gif.GifImageView
+            android:id="@+id/gifView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="wrap_content" />
     </RelativeLayout>
     <LinearLayout
         android:padding="5dp"

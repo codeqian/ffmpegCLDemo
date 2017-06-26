@@ -49,6 +49,8 @@ import codepig.ffmpegcldemo.utils.bitmapFactory;
 import codepig.ffmpegcldemo.utils.mathFactory;
 import codepig.ffmpegcldemo.utils.videoUtils;
 import codepig.ffmpegcldemo.values.videoInfo;
+import pl.droidsonroids.gif.GifDrawable;
+import pl.droidsonroids.gif.GifImageView;
 
 public class MainActivity extends AppCompatActivity {
     private Context context;
@@ -59,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout titlePlan,controlPlan,bufferIcon,timePlan;
     private FrameLayout recodePlan;
     private ImageView imgPreview;
+    private GifImageView gifImageView1;
     private SurfaceView surfaceView;
     private VideoView videoPreview;
     private MediaPlayer mPlayer,aPlayer;
@@ -106,6 +109,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void findView(){
+        gifImageView1 = (GifImageView) findViewById(R.id.gifView);
         cameraBtn=(Button) findViewById(R.id.cameraBtn);
         stopCameraBtn=(Button) findViewById(R.id.stopCameraBtn);
         switchCameraBtn=(Button) findViewById(R.id.switchCameraBtn);
@@ -529,19 +533,38 @@ public class MainActivity extends AppCompatActivity {
 
                         imageUrl=FileUtil.getPath(this,imageUri);
                         if(!imageUrl.equals("")) {
-                            imgPreview.setVisibility(View.VISIBLE);
-                            Runnable bmpR=new Runnable() {
-                                @Override
-                                public void run() {
-                                    imageBitmap = imageLoader.returnBitMapLocal(imageUrl, 300, 200);
-                                    if (imageBitmap != null){
-                                        Message msg = new Message();
-                                        msg.what = SETFRAME;
-                                        mHandler.sendMessage(msg);
-                                    }
+                            String _type="gif";
+                            if(_type.equals("gif")){
+                                try {
+                                    // 如果加载的是gif动图，第一步需要先将gif动图资源转化为GifDrawable
+                                    // 将gif图资源转化为GifDrawable
+                                    GifDrawable gifDrawable = new GifDrawable(getResources(), R.drawable.loading);
+
+                                    // gif1加载一个动态图gif
+                                    gifImageView1.setImageDrawable(gifDrawable);
+
+
+                                    // 如果是普通的图片资源，就像Android的ImageView set图片资源一样简单设置进去即可。
+                                    // gif2加载一个普通的图片（如png，bmp，jpeg等等）
+                                    gifImageView2.setImageResource(R.drawable.ic_launcher);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
                                 }
-                            };
-                            ThreadPoolUtils.execute(bmpR);
+                            }else {
+                                imgPreview.setVisibility(View.VISIBLE);
+                                Runnable bmpR = new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        imageBitmap = imageLoader.returnBitMapLocal(imageUrl, 300, 200);
+                                        if (imageBitmap != null) {
+                                            Message msg = new Message();
+                                            msg.what = SETFRAME;
+                                            mHandler.sendMessage(msg);
+                                        }
+                                    }
+                                };
+                                ThreadPoolUtils.execute(bmpR);
+                            }
                         }
                     }catch (Exception e){
                         Log.i("LOGCAT",e.toString());
