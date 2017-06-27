@@ -25,10 +25,10 @@
             android:scaleType="fitXY"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
-        <pl.droidsonroids.gif.GifImageView
-            android:id="@+id/gifView"
+        <com.ant.liao.GifView android:id="@+id/gifView"
+            android:layout_height="match_parent"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:enabled="false" />
     </RelativeLayout>
     <LinearLayout
         android:padding="5dp"
