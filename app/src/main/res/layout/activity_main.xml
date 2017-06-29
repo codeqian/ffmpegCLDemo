@@ -111,6 +111,14 @@
             android:textSize="10sp"
             android:layout_width="70dp"
             android:layout_height="30dp" />
+        <Button
+            android:background="@drawable/btn"
+            android:layout_margin="@dimen/item_margin_small"
+            android:text="testBtn"
+            android:id="@+id/testBtn"
+            android:textSize="10sp"
+            android:layout_width="70dp"
+            android:layout_height="30dp"/>
     </LinearLayout>
     <Button
         android:layout_margin="4dp"

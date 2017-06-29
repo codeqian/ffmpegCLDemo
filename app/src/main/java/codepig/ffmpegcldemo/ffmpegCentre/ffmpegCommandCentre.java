@@ -81,6 +81,42 @@ public class ffmpegCommandCentre {
     }
 
     /**
+     * 图片转视频
+     */
+    public static String[] image2mov(String imageUrl,String _t,String outputUrl){
+        ArrayList<String> _commands=new ArrayList<>();
+        _commands.add("ffmpeg");
+        //输入
+        _commands.add("-loop");//将单张图片循环,如果是gif图片则是忽略此参数的
+        _commands.add("1");
+        _commands.add("-i");
+        _commands.add(imageUrl);
+        //视频配置
+//        _commands.add("-vcodec");
+//        _commands.add("libx264");
+        _commands.add("-r");
+        _commands.add("25");
+        _commands.add("-b");
+        _commands.add("200k");
+        _commands.add("-s");
+        _commands.add("640x360");
+        _commands.add("-t");
+        _commands.add(_t);
+        //覆盖输出
+        _commands.add("-y");//直接覆盖输出文件
+        //输出文件
+        _commands.add(outputUrl);
+        String[] commands = new String[_commands.size()];
+        String _pr="";
+        for(int i=0;i<_commands.size();i++){
+            commands[i]=_commands.get(i);
+            _pr+=commands[i];
+        }
+        Log.d("LOGCAT","ffmpeg command:"+_pr+"-"+commands.length);
+        return commands;
+    }
+
+    /**
      * 合成
      */
     public static String[] makeVideo(String textIimageUrl,String imageUrl,String musicUrl,String videoUrl,String outputUrl,int _duration){

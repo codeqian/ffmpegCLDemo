@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText title_t,author_t,description_t;
     private TextView skip_t,currentTime_t,totalTime_t;
     private SeekBar seekBar;
-    private Button cameraBtn,stopCameraBtn,imgBtn,movBtn,musicBtn,makeBtn,switchCameraBtn,enter_Btn,titleBtn,newBtn;
+    private Button cameraBtn,stopCameraBtn,imgBtn,movBtn,musicBtn,makeBtn,switchCameraBtn,enter_Btn,titleBtn,newBtn,testBtn;
     private LinearLayout titlePlan,controlPlan,bufferIcon,timePlan;
     private FrameLayout recodePlan;
     private ImageView imgPreview;
@@ -111,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void findView(){
         cameraBtn=(Button) findViewById(R.id.cameraBtn);
+        testBtn=(Button) findViewById(R.id.testBtn);
         stopCameraBtn=(Button) findViewById(R.id.stopCameraBtn);
         switchCameraBtn=(Button) findViewById(R.id.switchCameraBtn);
         newBtn=(Button) findViewById(R.id.newBtn);
@@ -158,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
         titleBtn.setOnClickListener(clickBtn);
         skip_t.setOnClickListener(clickBtn);
         newBtn.setOnClickListener(clickBtn);
+        testBtn.setOnClickListener(clickBtn);
 
         DisplayMetrics dm =getResources().getDisplayMetrics();
         deviceInfo.screenWidth = dm.widthPixels;
@@ -391,6 +393,9 @@ public class MainActivity extends AppCompatActivity {
                     newBtn.setVisibility(View.GONE);
                     stopPlayer();
                     stopPresTimer();
+                    break;
+                case R.id.testBtn://测试用按钮，测试各种临时功能的
+                    ffmpegTest();
                     break;
                 default:
                     break;
@@ -707,6 +712,42 @@ public class MainActivity extends AppCompatActivity {
         }
 //        String[] commands= ffmpegCommandCentre.addTextMark(textMarkUrl,videoUrl,outputUrl);
         String[] commands= ffmpegCommandCentre.makeVideo(textMarkUrl,imageUrl,musicUrl,videoUrl,outputUrl,currentTime);
+        final String[] _commands=commands;
+        Runnable compoundRun=new Runnable() {
+            @Override
+            public void run() {
+                FFmpegKit.execute(_commands, new FFmpegKit.KitInterface() {
+                    @Override
+                    public void onStart() {
+                        Log.d("FFmpegLog LOGCAT","FFmpeg 命令行开始执行了...");
+                        Message msg = new Message();
+                        msg.what = ENCODEING;
+                        mHandler.sendMessage(msg);
+                    }
+
+                    @Override
+                    public void onProgress(int progress) {
+                        Log.d("FFmpegLog LOGCAT","done com"+"FFmpeg 命令行执行进度..."+progress);
+                    }
+
+                    @Override
+                    public void onEnd(int result) {
+                        Log.d("FFmpegLog LOGCAT","FFmpeg 命令行执行完成...");
+                        Message msg = new Message();
+                        msg.what = ENCODED;
+                        mHandler.sendMessage(msg);
+                    }
+                });
+            }
+        };
+        ThreadPoolUtils.execute(compoundRun);
+    }
+
+    /**
+     * ffmpeg测试操作
+     */
+    private void ffmpegTest(){
+        String[] commands= ffmpegCommandCentre.image2mov(imageUrl,"3",outputUrl);
         final String[] _commands=commands;
         Runnable compoundRun=new Runnable() {
             @Override
