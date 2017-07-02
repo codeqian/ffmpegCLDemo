@@ -10,10 +10,13 @@ import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.net.URISyntaxException;
+import java.text.SimpleDateFormat;
 
 public class FileUtil {
     public static final String LOG_TAG = "LOGCAT";
@@ -105,6 +108,48 @@ public class FileUtil {
             return null;
         }
         return content;
+    }
+
+    /**
+     * 创建txt文件
+     */
+    public static void createTxtFile(){
+        File dir = new File(storagePath+"/list4concat.txt");
+        if (!dir.exists()) {
+            try {
+                //在指定的文件夹中创建文件
+                dir.createNewFile();
+            } catch (Exception e) {
+            }
+        }
+    }
+//
+    /**
+     * 写入txt文件
+     * @param str
+     */
+    public static void writeTxtFile(String str){
+//        str="file ./split.mp4 \nfile ./split1.mp4";
+        FileWriter fw = null;
+        BufferedWriter bw = null;
+        String datetime = "";
+        try {
+            fw = new FileWriter(storagePath+"/list4concat.txt", true);//
+            // 创建FileWriter对象，用来写入字符流
+            bw = new BufferedWriter(fw); // 将缓冲对文件的输出
+            bw.write(str); // 写入文件
+            bw.newLine();
+            bw.flush(); // 刷新该流的缓冲
+            bw.close();
+            fw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            try {
+                bw.close();
+                fw.close();
+            } catch (Exception e1) {
+            }
+        }
     }
 
     /**

@@ -81,14 +81,46 @@ public class ffmpegCommandCentre {
     }
 
     /**
+     *  拼接视频
+     */
+    public static String[] concatVideo(String _filePath, String  _outPath){//-f concat -i list.txt -c copy concat.mp4
+        ArrayList<String> _commands=new ArrayList<>();
+        _commands.add("ffmpeg");
+        //输入
+        _commands.add("-f");
+        _commands.add("concat");
+        _commands.add("-i");
+        _commands.add(_filePath);
+
+        //输出文件
+        _commands.add("-c");
+        _commands.add("copy");
+        _commands.add(_outPath);
+        String[] commands = new String[_commands.size()];
+        String _pr="";
+        for(int i=0;i<_commands.size();i++){
+            commands[i]=_commands.get(i);
+            _pr+=commands[i];
+        }
+        Log.d("LOGCAT","ffmpeg command:"+_pr+"-"+commands.length);
+        return commands;
+    }
+
+    /**
      * 图片转视频
      */
     public static String[] image2mov(String imageUrl,String _t,String outputUrl){
         ArrayList<String> _commands=new ArrayList<>();
         _commands.add("ffmpeg");
         //输入
-        _commands.add("-loop");//将单张图片循环,如果是gif图片则是忽略此参数的
-        _commands.add("1");
+        String _type=imageUrl.substring(imageUrl.length()-3);
+        if(_type.equals("gif")){
+            _commands.add("-ignore_loop");
+            _commands.add("0");
+        }else{
+            _commands.add("-loop");//将单张图片循环,如果是gif图片则是忽略此参数的
+            _commands.add("1");
+        }
         _commands.add("-i");
         _commands.add(imageUrl);
         //视频配置
