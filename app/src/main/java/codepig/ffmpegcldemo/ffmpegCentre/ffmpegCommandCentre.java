@@ -91,7 +91,6 @@ public class ffmpegCommandCentre {
         _commands.add("concat");
         _commands.add("-i");
         _commands.add(_filePath);
-
         //输出文件
         _commands.add("-c");
         _commands.add("copy");

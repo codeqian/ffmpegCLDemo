@@ -215,6 +215,14 @@ public class MainActivity extends AppCompatActivity {
         outputUrl= FileUtil.getPath() + "/"+outputFilename+".mp4";
         //检测是否存在摄像头
         hasCamera=checkCameraHardware(context);
+
+        //test
+        File file = new File(FileUtil.getPath() + "/concatTest.txt");
+        if(!file.exists()) {
+            file.mkdirs();
+        }
+        //创建拼接文件描述文件，用来最后拼接片头文件和录制文件
+        FileUtil.createTxtFile("file '"+FileUtil.getPath()+"/testVideo.mp4'\n file '"+FileUtil.getPath()+"/op.mp4'");
     }
 
     /**
@@ -444,7 +452,7 @@ public class MainActivity extends AppCompatActivity {
             // 设置声音编码的格式
 //            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
             // 设置图像编码的格式
-            mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+            mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
             //设置分辨率
             mRecorder.setVideoSize(deviceInfo.recodeWidth,deviceInfo.recodeHeight);
             //码率
@@ -747,7 +755,7 @@ public class MainActivity extends AppCompatActivity {
      * ffmpeg测试操作
      */
     private void ffmpegTest(){
-        String[] commands= ffmpegCommandCentre.image2mov(imageUrl,"3",outputUrl);
+        String[] commands= ffmpegCommandCentre.concatVideo(FileUtil.getPath()+"/list4concat.txt",outputUrl);
         final String[] _commands=commands;
         Runnable compoundRun=new Runnable() {
             @Override

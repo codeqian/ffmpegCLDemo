@@ -113,7 +113,7 @@ public class FileUtil {
     /**
      * 创建txt文件
      */
-    public static void createTxtFile(){
+    public static void createTxtFile(String _msg){
         File dir = new File(storagePath+"/list4concat.txt");
         if (!dir.exists()) {
             try {
@@ -122,6 +122,7 @@ public class FileUtil {
             } catch (Exception e) {
             }
         }
+        writeTxtFile(_msg);
     }
 //
     /**
@@ -134,7 +135,7 @@ public class FileUtil {
         BufferedWriter bw = null;
         String datetime = "";
         try {
-            fw = new FileWriter(storagePath+"/list4concat.txt", true);//
+            fw = new FileWriter(storagePath+"/list4concat.txt", false);//
             // 创建FileWriter对象，用来写入字符流
             bw = new BufferedWriter(fw); // 将缓冲对文件的输出
             bw.write(str); // 写入文件
