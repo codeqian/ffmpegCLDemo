@@ -189,6 +189,12 @@ public class ffmpegCommandCentre {
             _commands.add("-i");
             _commands.add(musicUrl);
         }
+        _commands.add("-r");
+        _commands.add("25");
+        _commands.add("-b");
+        _commands.add("1000k");
+        _commands.add("-s");
+        _commands.add("640x360");
         //覆盖输出
 //        _commands.add("-y");
         //时间参数，没有的话如果视频短于音频则会在视频最后一帧停住继续合成直到音频结束。
