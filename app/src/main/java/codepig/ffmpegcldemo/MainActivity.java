@@ -217,12 +217,8 @@ public class MainActivity extends AppCompatActivity {
         hasCamera=checkCameraHardware(context);
 
         //test
-        File file = new File(FileUtil.getPath() + "/concatTest.txt");
-        if(!file.exists()) {
-            file.mkdirs();
-        }
         //创建拼接文件描述文件，用来最后拼接片头文件和录制文件
-        FileUtil.createTxtFile("file '/storage/sdcard0/testFile/opt.mp4'\nfile '/storage/sdcard0/testFile/完成舞曲.mp4'");
+        FileUtil.createTxtFile("file '/storage/sdcard0/testFile/test1.mp4'\nfile '/storage/sdcard0/testFile/middle.mp4'");
     }
 
     /**
