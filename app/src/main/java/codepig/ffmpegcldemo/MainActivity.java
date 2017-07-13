@@ -1,8 +1,10 @@
 package codepig.ffmpegcldemo;
 
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.hardware.Camera;
@@ -13,6 +15,7 @@ import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -99,6 +102,8 @@ public class MainActivity extends AppCompatActivity {
     private final int ENCODEING=8;
     private final int ENCODED=9;
     private final int SETFRAME=10;
+
+    private ffmpegService.mBinder ffmpegBinder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -399,7 +404,7 @@ public class MainActivity extends AppCompatActivity {
                     stopPresTimer();
                     break;
                 case R.id.testBtn://测试用按钮，测试各种临时功能的
-                    ffmpegTest();
+                    ffmpegServiceTest();
                     break;
                 default:
                     break;
@@ -782,6 +787,63 @@ public class MainActivity extends AppCompatActivity {
         };
         ThreadPoolUtils.execute(compoundRun);
     }
+
+    /**
+     * ffmpeg测试操作
+     */
+    private void ffmpegServiceTest(){
+        String[] commands= ffmpegCommandCentre.concatVideo(FileUtil.getPath()+"/list4concat.txt",outputUrl);
+        final String[] _commands=commands;
+
+        Intent startIntent = new Intent(this, ffmpegService.class);
+        startService(startIntent);
+
+        Runnable compoundRun=new Runnable() {
+            @Override
+            public void run() {
+                FFmpegKit.execute(_commands, new FFmpegKit.KitInterface() {
+                    @Override
+                    public void onStart() {
+                        Log.d("FFmpegLog LOGCAT","FFmpeg 命令行开始执行了...");
+                        Message msg = new Message();
+                        msg.what = ENCODEING;
+                        mHandler.sendMessage(msg);
+                    }
+
+                    @Override
+                    public void onProgress(int progress) {
+                        Log.d("FFmpegLog LOGCAT","done com"+"FFmpeg 命令行执行进度..."+progress);
+                    }
+
+                    @Override
+                    public void onEnd(int result) {
+                        Log.d("FFmpegLog LOGCAT","FFmpeg 命令行执行完成...");
+                        Message msg = new Message();
+                        msg.what = ENCODED;
+                        mHandler.sendMessage(msg);
+                    }
+                });
+            }
+        };
+        ThreadPoolUtils.execute(compoundRun);
+    }
+
+    private void stopFFmpegService(){
+        Intent stopIntent = new Intent(this, ffmpegService.class);
+        stopService(stopIntent);
+    }
+
+    private ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+        }
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            ffmpegBinder = (ffmpegService.mBinder) service;
+            ffmpegBinder.startFFmpeg();
+        }
+    };
 
     /**
      * 确保视频保保存完毕后才可执行合成操作，否则可能引发ffmpeg的空指针错误
