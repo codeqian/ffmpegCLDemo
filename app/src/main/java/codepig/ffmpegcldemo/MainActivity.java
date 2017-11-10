@@ -103,8 +103,6 @@ public class MainActivity extends AppCompatActivity {
     private final int ENCODED=9;
     private final int SETFRAME=10;
 
-    private ffmpegService.mBinder ffmpegBinder;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -217,13 +215,13 @@ public class MainActivity extends AppCompatActivity {
         };
 
         //输出文件地址
-        outputUrl= FileUtil.getPath() + "/"+outputFilename+".mp4";
+        outputUrl= FileUtil.getPath() + "/"+outputFilename+".avi";
         //检测是否存在摄像头
         hasCamera=checkCameraHardware(context);
 
         //test
         //创建拼接文件描述文件，用来最后拼接片头文件和录制文件
-        FileUtil.createTxtFile("file '/storage/sdcard0/testFile/test1.mp4'\nfile '/storage/sdcard0/testFile/middle.mp4'");
+        FileUtil.createTxtFile("file '/storage/sdcard0/testFile/test1.avi'\nfile '/storage/sdcard0/testFile/middle.avi'");
     }
 
     /**
@@ -417,8 +415,8 @@ public class MainActivity extends AppCompatActivity {
      */
     private void startRecode(){
         // 创建保存录制视频的视频文件
-        videoFile = new File(FileUtil.getPath() + "/"+recordFilename+".mp4");
-        videoUrl=FileUtil.getPath() + "/"+recordFilename+".mp4";
+        videoFile = new File(FileUtil.getPath() + "/"+recordFilename+".avi");
+        videoUrl=FileUtil.getPath() + "/"+recordFilename+".avi";
         if(videoFile!=null && videoFile.exists()){
             videoFile.delete();//录制前先删除原文件，不然文件大小不会变。
         }
@@ -449,7 +447,7 @@ public class MainActivity extends AppCompatActivity {
 //            mRecorder.setOrientationHint(90);
             // 设置视频文件的输出格式
             // 必须在设置声音编码格式、图像编码格式之前设置
-            mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+            mRecorder.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);
             // 设置声音编码的格式
 //            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
             // 设置图像编码的格式
@@ -753,7 +751,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * ffmpeg测试操作
+     * 视频合成列表测试
      */
     private void ffmpegTest(){
         String[] commands= ffmpegCommandCentre.concatVideo(FileUtil.getPath()+"/list4concat.txt",outputUrl);
@@ -789,48 +787,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * ffmpeg测试操作
+     * ffmpegService测试操作
      */
     private void ffmpegServiceTest(){
-        String[] commands= ffmpegCommandCentre.concatVideo(FileUtil.getPath()+"/list4concat.txt",outputUrl);
-        final String[] _commands=commands;
-
         Intent startIntent = new Intent(this, ffmpegService.class);
+        startIntent.putExtra("outputUrl",outputUrl);
         startService(startIntent);
-
-        Runnable compoundRun=new Runnable() {
-            @Override
-            public void run() {
-                FFmpegKit.execute(_commands, new FFmpegKit.KitInterface() {
-                    @Override
-                    public void onStart() {
-                        Log.d("FFmpegLog LOGCAT","FFmpeg 命令行开始执行了...");
-                        Message msg = new Message();
-                        msg.what = ENCODEING;
-                        mHandler.sendMessage(msg);
-                    }
-
-                    @Override
-                    public void onProgress(int progress) {
-                        Log.d("FFmpegLog LOGCAT","done com"+"FFmpeg 命令行执行进度..."+progress);
-                    }
-
-                    @Override
-                    public void onEnd(int result) {
-                        Log.d("FFmpegLog LOGCAT","FFmpeg 命令行执行完成...");
-                        Message msg = new Message();
-                        msg.what = ENCODED;
-                        mHandler.sendMessage(msg);
-                    }
-                });
-            }
-        };
-        ThreadPoolUtils.execute(compoundRun);
-    }
-
-    private void stopFFmpegService(){
-        Intent stopIntent = new Intent(this, ffmpegService.class);
-        stopService(stopIntent);
     }
 
     private ServiceConnection connection = new ServiceConnection() {
@@ -840,8 +802,6 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            ffmpegBinder = (ffmpegService.mBinder) service;
-            ffmpegBinder.startFFmpeg();
         }
     };
 
